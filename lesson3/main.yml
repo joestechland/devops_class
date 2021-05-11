@@ -1,0 +1,41 @@
+---
+- hosts: all
+  become: true
+  vars:
+    vaulted_password: oracle
+
+  tasks:
+    - name: get file stats.
+      stat:
+        path: /etc/hosts
+      register: filestat
+
+    - name: show file stats.
+      debug: var=filestat
+
+    - name: copy file to servers.
+      copy:
+        src: /etc/hosts
+        dest: /tmp/hosts
+
+    - name: create directory.
+      file:
+        dest: /tmp/test
+        mode: 0644
+        state: directory
+    - name: install git.
+      yum:
+        name: git
+        state: present
+
+    - name: Create user Oracle.
+      user:
+        name: oracle
+        createhome: true
+        password: "{{ vaulted_password | password_hash('sha512') }}"
+
+    - name: Update yum.
+      yum:
+        name: "*"
+        state: latest
+        update_cache: true

@@ -1,28 +1,36 @@
 # Lesson 3 Demos and Notes
+
+# Lesson Overview: Slides
+
 # Review Ansible Testing setup: Control VM (Ubuntu) +  App and Db (OEL7.x)
 # Control VM  - use desktop image - comes with Gnome
-# add shqred folder to COntrol - copy to ~/devops_class for permissions
-# reboot after creation (hung)
-sudo apt update
-sudo apt upgrade
+
+# Control server.
+config.vm.define "control" do |ctl|
+ctl.vm.hostname = "control.example.com"
+ctl.vm.box = "peru/ubuntu-20.04-desktop-amd64"
+ctl.vm.network :private_network, ip:"192.168.60.10"
+end
+
+#Confirm we have VSC, Ansible, Linters installed
+
+
 # Use GitHib for source control manamgment )(SCM)
 # Create/log into GitHub account
-# create rpository and get clone link
-# on PC locate where you want the repos cloned to C:\devops_class\git_repos
-# while these run - clone github repos to c:\devops_class -> devops_class repos
+# create repository and get clone link
+
+
 # install git if needed: https://git-scm.com/download/win
 git clone https://github.com/joestechland/devops_class.git
 # clone repo with url - enter username/password
-# In COntrol VM< start VSC and Open folder for cloned repo
+# In Control VM, start VSC and Open folder for cloned repo
 # Test edit and add, commit and push
+# enter email and named
 # Check Github for changes
 
 # create keys ssh-keygen
-# Control VM - run ansible script to configure (update, VSC, + account, ansible + linters)
+# Control VM - run ansible script to configure (update, VSC, + account, +ansible +linters -bloatware)
 # Create shared folder to c:\devops_class
-
-
-
 
 
 # Create keys for passwordless ssh to the vms
@@ -30,6 +38,8 @@ git clone https://github.com/joestechland/devops_class.git
 ssh-keygen
 #CHange filename to ansible (/home/vagrant/.ssh/ansible)
 enter password: none
+# ping other servers
+
 . copy keys to other servers
 ssh-copy-id vagrant@192.168.60.11
 #Yes to continue connecting & password is vagrant
@@ -46,13 +56,11 @@ ssh vagrant@192.168.60.12
 . Back at vagrant@control, try to ping the servers with ansible
 ansible all -i "192.168.60.11, 192.168.60.12" -m ping
 
-## Alternative use ansible key_file
-in ansible.cfg
-private_key_file =  ~/.ssh/ansible
+# Save Snapshot of Control VM
 
 If all this works, you can try the demos from class or play around yourself.
 
-Remember to exit vagrant@control to run vagrant commands on the VMs:
+# run vagrant commands on the VMs:
 vagrant suspend -a
 #will suspend the servers
 vagrant resume
@@ -73,5 +81,39 @@ File New File inventory.ini
 ansible all -i inventory.ini -m ping
 
 # Create config file
-# add inventory private_key_file
 # Rereun ansible ad hoc w/o inventory
+ ansible all  -a "free -m" 
+ -a "free -h"
+Facts about the servers:
+   ansible all -m setup 
+# limit the servers
+    ansible all -m setup --limit 192.168.0.201
+
+
+interpreter_python=auto_silent
+
+ansible all -m yum -a "name=git state=present"
+ansible all -b -m yum -a "name=git state=present"
+ansible all -b -m yum -a "name=git state=absent"
+
+
+- Check file Permissions
+			ansible all  -m stat -a "path=/etc/hosts" 
+		
+	- Copy files Up to the servers
+			ansible all -m copy -a "src=/etc/hosts dest=/tmp/hosts"
+	- Copy files FROM the servers
+			ansible all -b -m fetch -a "src=/etc/hosts dest=/tmp"
+	- Create directories
+			ansible all -m file -a "dest=/tmp/test mode=644 state=directory"
+	- Delete directories
+			ansible all -m file -a "dest=/tmp/test mode=644 state=absent"
+	- Check log files
+			ansible all -b -a "tail /var/log/messages"
+	NOTE: Piping requires use of Shell module
+		ansible all -b -m shell -a "tail /var/log/messages | grep ansible-command | wc -l"
+
+# create playbook to  do all this: get file stat, copy file, create dir, install git, add user, update yum
+
+# use yamllint and ansible-lint
+
