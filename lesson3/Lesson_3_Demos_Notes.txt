@@ -14,6 +14,7 @@ end
 
 #Confirm we have VSC, Ansible, Linters installed
 
+# wow VBox is a pain today
 
 # Use GitHib for source control manamgment )(SCM)
 # Create/log into GitHub account
