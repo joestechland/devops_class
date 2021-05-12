@@ -30,7 +30,7 @@ Firefox: github.com/joestechland/devops_class
 git clone https://github.com/joestechland/devops_class.git
 
 # Create/use your own Github account 
-# Clone oyur class repo
+# Clone your class repo
 # update it with my content
 # push your changes
 # can do in terminal or VSC
