@@ -1,0 +1,19 @@
+---
+- hosts: all
+  become: true
+  roles:
+    - role: shellbro.vnc_server
+      user: vagrant
+      password: vagrant
+      display: :1
+  tasks:
+    - name: Open 5901-5 ports for vncserver.
+      firewalld:
+        zone: external
+        port: 5901-5905/tcp
+        immediate: true
+        permanent: true
+        state: enabled
+
+    - name: reboot the server for firewall to take effect.
+      reboot:
