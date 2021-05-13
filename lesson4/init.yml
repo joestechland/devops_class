@@ -3,7 +3,11 @@
   become: true
   vars_files:
     - vars.yml
-
+  vars:
+    download_file_src: "/home/joe/Downloads/jdk-11.0.11_linux-x64_bin.rpm"
+    download_folder: /tmp
+    java_src: /jdk-11.0.11_linux-x64_bin.rpm
+    java_name: "/jdk-11.0.11"
   tasks:
 
     - name: Update repos.
@@ -18,65 +22,46 @@
         createhome: true
         password: "{{ vaulted_password | password_hash('sha512') }}"
 
-    - name: Install tigervnc server.
+#     - name: copy ssh key file to ~/.ssh.
+#       copy:
+#         src: ~/.ssh/ansible.pub
+#         dest: /home/oracle/.ssh/
+#  #       create: true
+        
+    - name: Set authorized key from file.
+      authorized_key:
+        user: oracle
+        state: present
+        key: "{{ lookup('file', '/home/joe/.ssh/ansible.pub') }}"
+
+    - name: add Oracle to sudoers file.
+      lineinfile:
+        path: /etc/sudoers
+        line: "oracle  ALL=(ALL) NOPASSWD:ALL"
+
+    - name: Copy rpm file to server.
+      copy:
+        src: "{{download_file_src}}"
+        dest: "{{download_folder}}"
+
+
+    - name: Install the rpm files.
       yum:
-        name: tigervnc-server
+        name: "{{download_folder}}{{java_src}}"
         state: present
 
-    - name: copy vncserver file.
-      copy:
-        src: /lib/systemd/system/vncserver@.service
-        dest: /etc/systemd/system/vncserver@.service
-        remote_src: true
-
-    - name: Ansible replace <USER> in vncserver file.
-      replace:
-        path: /etc/systemd/system/vncserver@.service
-        regexp: '<USER>'
-        replace: "{{ user }}"
-
-    - name: reload daemon.
-      systemd:
-        daemon_reload: true
-
-    - name: enable the vncserver service.
-      systemd:
-        name: vncserver@1.service
-        enabled: true
-
-    - name: start the vncserver service.
-      systemd:
-        name: vncserver@1.service
-        state: started
-
-    - name: Check if VNC password is already set
-      stat:
-        path: /home/{{ user }}/.vnc/passwd
-      become: true
-      register: vnc_passwd_file
-
-    - name: Create .vnc directory
+    - name: Fix ownership.
       file:
-        group: "{{ user }}"
-        mode: 0755
-        owner: "{{ user }}"
-        path: /home/{{ user }}/.vnc
+        path: "{{java_name}}"
+        owner: root
+        group: root
+        recurse: true
         state: directory
-      become: true
-      when: not vnc_passwd_file.stat.exists
 
-    - name: Set default VNC password
-      shell: |
-        set -o pipefail
-        echo "{{ user }}"| vncpasswd -f > /home/{{ user }}/.vnc/passwd
-      become: true
-      when: not vnc_passwd_file.stat.exists
+    - name: Make Java available for system.
+      command: 'alternatives --install "/usr/bin/java" "java" "{{java_name}}/bin/java" 2000'
 
-    - name: Set correct permissions for VNC passwd file
+    - name: Clean up files.
       file:
-        group: "{{ user }}"
-        mode: 0600
-        owner: "{{ user }}"
-        path: /home/{{ user }}/.vnc/passwd
-      become: true
-      when: not vnc_passwd_file.stat.exists
+        path: "{{download_folder}}/{{java_name}}"
+        state: absent

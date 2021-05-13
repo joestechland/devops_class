@@ -1,2 +1,1 @@
-  vars_files:
-    - vars.yml
+https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse.html#playbooks-reuse

@@ -1,12 +1,116 @@
 ---
 - hosts: all
   become: true
-  roles:
-    - role: shellbro.vnc_server
-      user: vagrant
-      password: vagrant
-      display: :1
+  vars_files:
+    vars.yml
+  # roles:
+  #   - role: shellbro.vnc_server
+  #     user: vagrant
+  #     password: vagrant
+  #     display: :1
   tasks:
+    - name: Install TigerVNC server
+      yum:
+        name: tigervnc-server
+
+    - name: Make sure user account exists
+      user:
+        name: "{{ user }}"
+
+    - name: Copy configuration file.
+      copy:
+        dest: /etc/systemd/system/vncserver-{{ user }}@.service
+        force: false
+        remote_src: true
+        src: /usr/lib/systemd/system/vncserver@.service
+
+    - name: Configure ExecStart.
+      lineinfile:
+        line: ExecStart=/usr/sbin/runuser -l {{ user }} -c "/usr/bin/vncserver %i"
+        path: /etc/systemd/system/vncserver-{{ user }}@.service
+        regexp: ^ExecStart=
+
+ #   notify: Restart VNC service
+
+    - name: Configure PIDFile
+      lineinfile:
+        line: PIDFile=/home/{{ user }}/.vnc/%H%i.pid
+        path: /etc/systemd/system/vncserver-{{ user }}@.service
+        regexp: ^PIDFile=
+  #    notify: Restart VNC service
+
+    - name: Remove service user directive which sometimes seems to be present
+      lineinfile:
+        path: /etc/systemd/system/vncserver-{{ user }}@.service
+        regexp: ^User=
+        state: absent
+  #    notify: Restart VNC service
+
+    - name: Check if VNC password is already set
+      stat:
+        path: /home/{{ user }}/.vnc/passwd
+  #   become: true
+      register: vnc_passwd_file
+
+    - name: Create .vnc directory
+      file:
+        group: "{{ user }}"
+        mode: 0755
+        owner: "{{ user }}"
+        path: /home/{{ user }}/.vnc
+        state: directory
+      become: true
+      when: not vnc_passwd_file.stat.exists
+
+    - name: Set default VNC password
+      shell: |
+        set -o pipefail
+        echo {{ password }} | vncpasswd -f > /home/{{ user }}/.vnc/passwd
+      become: true
+      when: not vnc_passwd_file.stat.exists
+
+    - name: Set correct permissions for VNC passwd file
+      file:
+        group: "{{ user }}"
+        mode: 0600
+        owner: "{{ user }}"
+        path: /home/{{ user }}/.vnc/passwd
+      become: true
+      when: not vnc_passwd_file.stat.exists
+
+    - name: Start and enable VNC service
+      tags: notest
+      systemd:
+        daemon_reload: true
+        enabled: true
+        name: vncserver-{{ user }}@{{ display }}
+        state: started
+      become: true
+
+    - name: Start GNOME 3 (not classic) session by default
+      tags: notest
+      lineinfile:
+        line: exec gnome-session
+        path: /home/{{ user }}/.vnc/xstartup
+        regexp: "^exec "  # Quotes emphasis space at the end
+      become: true
+  #   notify: Restart VNC service
+
+    - name: Check if autostart file exists
+      stat:
+        path: /etc/xdg/autostart/gnome-software-service.desktop
+      register: autostart_file
+
+    - name: >-
+        "Fix popup: Authentication is required to set the network proxy used for
+        downloading packages"
+      lineinfile:
+        line: X-GNOME-Autostart-enabled=false
+        path: /etc/xdg/autostart/gnome-software-service.desktop
+      become: true
+      notify: Restart VNC service
+      when: autostart_file.stat.exists
+
     - name: Open 5901-5 ports for vncserver.
       firewalld:
         zone: external
