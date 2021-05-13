@@ -1,5 +1,5 @@
 ---
-- hosts: 192.168.0.201
+- hosts: all
   become: true
   vars:
     vaulted_password: oracle
