@@ -54,15 +54,4 @@
     apt:
       upgrade: dist
       force_apt_get: true
-
-  - name: install curl.
-    snap:
-      name: curl
-
-# install maven
-# install jdk and remove open jdk
-
-
-# https://www.ansibletutorials.com/adding-users
-# install kubernetes and docker is a schwaz - do it in a separate playbook
-#https://kubernetes.io/blog/2019/03/15/kubernetes-setup-using-ansible-and-vagrant/
+  

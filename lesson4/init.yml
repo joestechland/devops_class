@@ -1,0 +1,10 @@
+---
+- hosts: all
+  become: true
+  tasks:
+
+    - name: Update repos.
+      yum:
+        name: "*"
+        state: latest
+        update_cache: true

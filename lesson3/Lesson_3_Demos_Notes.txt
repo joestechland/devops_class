@@ -3,9 +3,9 @@
 # Lesson Overview: Slides
 
 # Review Ansible Testing setup: Control VM (Ubuntu) +  App and Db (OEL7.x)
-# Control VM  - use desktop image - comes with Gnome
 
-# Control server.
+# Control VM  - can use desktop image - comes with Gnome
+# Can also create and "package" your own images with Vagrant
 config.vm.define "control" do |ctl|
 ctl.vm.hostname = "control.example.com"
 ctl.vm.box = "peru/ubuntu-20.04-desktop-amd64"
@@ -14,29 +14,39 @@ end
 
 #Confirm we have VSC, Ansible, Linters installed
 
+# wow VBox is a pain today
 
 # Use GitHib for source control manamgment )(SCM)
 # Create/log into GitHub account
 # create repository and get clone link
 
+# install git if needed: 
+# Windows: https://git-scm.com/download/win
+# ubuntu:
+sudo apt install git
 
-# install git if needed: https://git-scm.com/download/win
+# Clone the repository 
+Firefox: github.com/joestechland/devops_class
+#in terminal 
 git clone https://github.com/joestechland/devops_class.git
-# clone repo with url - enter username/password
+
+# Create/use your own Github account 
+# Clone your class repo
+# update it with my content
+# push your changes
+# can do in terminal or VSC
+
 # In Control VM, start VSC and Open folder for cloned repo
-# Test edit and add, commit and push
-# enter email and named
+# Test edit and add, commit
+# enter email and name
 # Check Github for changes
 
-# create keys ssh-keygen
-# Control VM - run ansible script to configure (update, VSC, + account, +ansible +linters -bloatware)
 # Create shared folder to c:\devops_class
-
 
 # Create keys for passwordless ssh to the vms
 # on Control: 
 ssh-keygen
-#CHange filename to ansible (/home/vagrant/.ssh/ansible)
+#Change filename to ansible (/home/vagrant/.ssh/ansible)
 enter password: none
 # ping other servers
 
