@@ -13,6 +13,8 @@
       yum:
         name: tigervnc-server
 
+# install gnome if it doies not exist
+
     - name: Make sure user account exists
       user:
         name: "{{ user }}"

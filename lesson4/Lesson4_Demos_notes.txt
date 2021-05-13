@@ -1,1 +1,17 @@
+Review progress so far:
+  - Create working linux vm to use as ansible control - can run VSC, git and can use with OIC later
+  - Execucte ad hoc ommands
+  - Create and use inventory file and cfg file
+  - Created first playbook
+New:
+Steps to creating a new playbook (pseudo steps first)
+Inventory with multiple groups
+vars, use in playbook, syntax (when to use "") and var files
+modules: lineinfile, authorized keys, file, copy, user, yum, command
+Conditionals - use of when and proper access to complex data - records and dictionaries in python.
+
+Goal: create user oracle, add ssh key, add to sudoers file, iinstall java jdk
+
+If time: resuse playbooks and split into and use roles.
+
 https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse.html#playbooks-reuse
