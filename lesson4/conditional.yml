@@ -1,0 +1,45 @@
+---
+- hosts: 192.168.0.201
+  become: true
+  vars:
+    vaulted_password: oracle
+
+  tasks:
+    - name: get file stats.
+      stat:
+        path: /etc/hosts
+      register: filestat
+
+    - name: show file stats.
+      debug: var=filestat.stat
+
+    - name: get server stats.
+      setup:
+      register: serverinfo
+
+    - name: show server stats 1.
+      debug: 
+        var: serverinfo.ansible_facts
+
+
+    - name: show server stats 2.
+      debug: 
+        var: serverinfo.ansible_facts.ansible_all_ipv4_addresses
+
+    - name: show server stats 3.
+      debug: 
+        var: serverinfo.ansible_facts.ansible_mounts
+
+
+    - name: show server stats 4.
+      debug: 
+        var: serverinfo.ansible_facts.ansible_mounts[0].uuid
+
+
+    - name: show server stats 5.
+      debug: 
+        var: serverinfo.ansible_facts.ansible_mounts
+    #      debug: var=serverinfo.ansible_facts
+    #      debug: var=serverinfo.ansible_facts.ansible_all_ipv4_addresses[1]
+    #      when: serverinfo.ansible_facts.ansible_all_ipv4_addresses[1] = "192.168.0.201"
+      when: serverinfo.ansible_facts.ansible_mounts[0].device  == "/dev/sda1"
