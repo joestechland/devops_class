@@ -15,3 +15,8 @@ Goal: create user oracle, add ssh key, add to sudoers file, iinstall java jdk
 If time: resuse playbooks and split into and use roles.
 
 https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse.html#playbooks-reuse
+
+https://blogs.oracle.com/oracleuniversity/post/how-to-use-ansible-to-set-up-a-vncserver-on-your-oracle-cloud-services
+https://computingforgeeks.com/manage-users-and-groups-on-linux-using-ansible/
+https://www.srcbox.net/projects/gkrellm/
+https://adamtheautomator.com/ansible-template/

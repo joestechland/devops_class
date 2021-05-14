@@ -1,0 +1,57 @@
+2021-05-12 22:52:25,619 p=root u=18543 | TASK [wcp_cs_build : debug] *******************************************************************************************************************************
+2021-05-12 22:52:25,709 p=root u=18543 | ok: [127.0.0.1] => {
+    "msg": {
+        "changed": false,
+        "failed": false,
+        "route_tables": [
+            {
+                "compartment_id": "ocid1.compartment.oc1..aaaaaaaafy2xbzj4b4ofek2nm542bb2a5i6ps75x6x34ef2m3ekuv7padp6a",
+                "defined_tags": {
+                    "Oracle-Tags": {
+                        "CreatedBy": "git-ousupport-opc-admin_ww@oracle.com",
+                        "CreatedOn": "2021-05-12T21:40:37.896Z"
+                    }
+                },
+                "display_name": "Route Table for Private Subnet-JCSVCN",
+                "freeform_tags": {},
+                "id": "ocid1.routetable.oc1.iad.aaaaaaaautd7wstdugkiaqqzvuxnqhrsmp5tu6cdqcjluvhkyx2wcrfccbpq",
+                "lifecycle_state": "AVAILABLE",
+                "route_rules": [
+                    {
+                        "cidr_block": null,
+                        "description": null,
+                        "destination": "0.0.0.0/0",
+                        "destination_type": "CIDR_BLOCK",
+                        "network_entity_id": "ocid1.natgateway.oc1.iad.aaaaaaaay3y2bke52jgkza7y5erkcmfp2fe5keczcy6uzfx4or5bikqig6ha"
+                    },
+                    {
+                        "cidr_block": null,
+                        "description": null,
+                        "destination": "all-iad-services-in-oracle-services-network",
+                        "destination_type": "SERVICE_CIDR_BLOCK",
+                        "network_entity_id": "ocid1.servicegateway.oc1.iad.aaaaaaaaiyxs2lm6iu5skbanqcrxouf2ggs473r3e3abcrc4tkknm36jy7gq"
+                    }
+                ],
+                "time_created": "2021-05-12T21:40:37.939000+00:00",
+                "vcn_id": "ocid1.vcn.oc1.iad.amaaaaaah5pfhkya67lkqpp74fmwauyaecl3shfh3nma6piqyztloj77dica"
+            },
+            {
+                "compartment_id": "ocid1.compartment.oc1..aaaaaaaafy2xbzj4b4ofek2nm542bb2a5i6ps75x6x34ef2m3ekuv7padp6a",
+                "defined_tags": {
+                    "Oracle-Tags": {
+                        "CreatedBy": "git-ousupport-opc-admin_ww@oracle.com",
+                        "CreatedOn": "2021-05-12T21:28:46.096Z"
+                    }
+                },
+                "display_name": "Default Route Table for vcn69880506",
+                "freeform_tags": {},
+                "id": "ocid1.routetable.oc1.iad.aaaaaaaaznkyenbjxf2545rewynnghhwq4tbjkhs3eod6grxzgursw7oszrq",
+                "lifecycle_state": "AVAILABLE",
+                "route_rules": [],
+                "time_created": "2021-05-12T21:28:46.100000+00:00",
+                "vcn_id": "ocid1.vcn.oc1.iad.amaaaaaah5pfhkya67lkqpp74fmwauyaecl3shfh3nma6piqyztloj77dica"
+            }
+        ]
+    }
+}
+2021-05-12 22:52:25,742 p=root u=18543 | TASK [wcp_cs_build : create a route table and route rules for private subnet] ***
