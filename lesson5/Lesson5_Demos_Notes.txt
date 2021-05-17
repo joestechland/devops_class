@@ -1,0 +1,8 @@
+Use vars file to pass parameters to playbook instead of using update script:
+2 CHoices:
+1. rename build.yml_template and purge.yml_template to build.yml and purge. yml and update vars.yml with  $event_id $domain_name $username $password $PLAYBOOK_NAME(???)
+2. Use ansible to generate a new build.yml and purge.yml from the vars.yml but do a search/replace on the internal vars with var values for  vars.yml (but what's the point?)
+3. Ue a combinaton: don't generate new build/purge.yml files and instead use update_tempaltes to populate endpoints in vars.yml - or simply copy/paste if they don;t changte. 
+Create a global vars.yml file and use that
+
+https://docs.ansible.com/ansible/latest/user_guide/playbooks_environment.html

@@ -1,3 +1,5 @@
 user: vagrant
 vaulted_password: oracle
 display: 1
+ssh_home: /Users/joe/.ssh
+download_file_src: ~/Downloads

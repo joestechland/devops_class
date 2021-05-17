@@ -1,0 +1,13 @@
+---
+
+
+  - name: Get compartment id
+    oci_compartment_facts:
+        compartment_id: '{{tenancy_id}}'
+        name: "{{ compartment_name }}"
+    register: return_object
+
+
+  - include: check_proxy.yml compartment_id={{return_object.compartments[0].id}}
+
+

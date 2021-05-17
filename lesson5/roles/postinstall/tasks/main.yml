@@ -1,0 +1,203 @@
+---
+
+
+      - name: Wait till connection is stable
+        wait_for_connection:
+          delay: 40
+          timeout: 360
+
+
+# Update passwords for the users inside the oci compute instance
+#  root user password is set as OU<event_id>+100 and is required to be changed after first login
+#  opc user password is set as OU<event_id>+100 and is NOT required to be changed after first login
+#  oracle user password is set as OU<event_id> and is required to be changed after first login
+
+
+      - name: set the password for oracle
+        set_fact:
+          password_oracle: '{{ pwd_oracle }}'
+
+
+      - name: set the password for root
+        set_fact:
+          password_root: '{{ pwd_root }}'
+
+
+      - name: hash the password for oracle
+        set_fact:
+          password_oracle: '{{ password_oracle | password_hash("sha512")}}'
+
+
+      - name: hash the password for root
+        set_fact:
+          password_root: '{{ password_root | password_hash("sha512")}}'
+
+
+      - name: Change oracle password
+        user:
+          name: 'oracle'
+          password: '{{ password_oracle }}'
+        become: yes
+
+
+      - name: Make the password to be changed for oracle
+        shell: 'chage -d 0 oracle'
+        become: yes
+
+
+      - name: Change root password
+        user:
+          name: 'root'
+          password: '{{ password_root }}'
+        become: yes
+
+
+      - name: Make the password to be changed for root
+        shell: 'chage -d 0 root'
+        become: yes
+
+
+      - name: Change opc password - same as root 
+        user:
+          name: 'opc'
+          password: '{{ password_root }}'
+        become: yes
+
+
+# Create useful files inside compute instance
+
+
+      - name: Add the file for instance_name
+        copy:
+          dest: "/etc/INSTANCES"
+          content: |
+            {{ instance_name }}
+        become: yes
+
+
+      - name: Add the file for event_id
+        copy:
+          dest: "/etc/event_id"
+          content: |
+            {{ event_id }}
+        become: yes
+
+
+# Configure edvmr1p0 alias with instance private ip
+
+
+      - name: Remove edvmr1p0 alias from hosts file
+        lineinfile:
+          path: /etc/hosts
+          state: absent
+          regexp: 'edvmr1p0'
+        become: yes
+
+
+      - name: Configure edvmr1p0 alias with instance private ip
+        shell: instance_private_ip=`hostname -I`;echo "$instance_private_ip         edvmr1p0.us.oracle.com edvmr1p0" >> /etc/hosts
+        become: yes
+
+
+# Configure proxy
+
+
+      - name: Remove any proxy server alias from hosts file
+        lineinfile:
+          path: /etc/hosts
+          state: absent
+          regexp: 'proxy'
+        become: yes
+
+
+      - name: Configure current proxy server alias
+        lineinfile:
+          dest: /etc/hosts
+          line: '{{hostvars["127.0.0.1"]["proxy_private_ip"]}}      ges-proxy-oci.subnetproxy.ocivcn.oraclevcn.com  ges-proxy-oci'
+          state: present
+        become: yes
+
+
+      - name: Remove no_proxies_on line from the firefox user.js configuration file
+        lineinfile:
+          path: /home/oracle/.mozilla/firefox/v97sbg2x.default/user.js
+          state: absent
+          regexp: 'no_proxies_on'
+        become: yes
+        become_user: oracle
+
+
+      - name: Add the instance private ip string to the no proxy list in Firefox
+        lineinfile:
+          path: /home/oracle/.mozilla/firefox/v97sbg2x.default/user.js
+          state: present
+          line: 'user_pref("network.proxy.no_proxies_on", "localhost, 127.0.0.1, edvmr1p0.us.oracle.com, edvmr1p0, instance_private_ip");'
+        become: yes
+        become_user: oracle
+
+
+      - name: Replace instance_private_ip string by actual instance private ip in firefox no proxy exception list
+        shell: instance_private_ip=`hostname -I`;sed -i "s/instance_private_ip/$instance_private_ip/g" /home/oracle/.mozilla/firefox/v97sbg2x.default/user.js
+        become: yes
+        become_user: oracle
+
+
+# These two tasks below are for enabling VNC on port 1(5901)
+# VNC password is based on event id and needs to be minimum of 6 chars
+
+
+      - name: Set VNC password for oracle user as <event_id>
+        shell: '/etc/rc.d/init.d/vncSetpasswd_main.sh'
+        become: yes
+
+
+      - name: Start VNC server for oracle user on port 1(5901)
+        shell: '/etc/rc.d/init.d/vncStart.sh'
+        become: yes
+
+
+# Cleanup ssh sessions history
+
+
+      - name: Removing history from root user
+        shell: 'rm -rf /root/.bash_history'
+        become: yes
+
+
+      - name: Removing history from oracle user
+        shell: 'rm -rf /home/oracle/.bash_history'
+        become: yes
+
+
+      - name: Removing history from opc user
+        shell: 'rm -rf /home/opc/.bash_history'
+        become: yes
+
+
+# Execute Post Install Script if it exists
+
+
+      - name: Make sure that Post Install Script exists and that it has execution permission
+        shell: touch /host-scripts/postinstall.sh;chmod 777 /host-scripts/postinstall.sh
+        become: yes
+
+
+      - name: Check if PostInstall_executed flag file exists
+        stat:
+          path: "/tmp/PostInstall_executed.flg"
+        register: result_PostInstall_flag
+
+
+      - name: Execute Post Install Script only if PostInstall_executed flag file does not exist
+        shell: /host-scripts/postinstall.sh > /tmp/PostInstall_executed.log
+        become: yes
+        when: result_PostInstall_flag.stat.exists == false
+
+
+      - name: Create PostInstall_executed flag file after the execution of the Post Install Script
+        file:
+          path: "/tmp/PostInstall_executed.flg"
+          state: touch
+
+
+
