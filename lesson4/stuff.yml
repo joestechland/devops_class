@@ -1,2 +1,7 @@
-- debug: 
-msg: "stuff"
+---
+- hosts: localhost
+  gather_facts: false
+  tasks:
+
+    - debug: 
+        msg: "stuff"
