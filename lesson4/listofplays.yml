@@ -1,6 +1,8 @@
 ---
 - hosts: all
   gather_facts: false
+  vars:
+    myname: "joe"
   tasks:
   - debug: 
-      msg: "listofplays"
+      msg: "{{ myname }} listofplays"
