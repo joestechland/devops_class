@@ -4,10 +4,9 @@
   vars_files:
     - vars.yml
   vars:
-    download_file_src: "/home/joe/Downloads/jdk-11.0.11_linux-x64_bin.rpm"
     download_folder: /tmp
-    java_src: /jdk-11.0.11_linux-x64_bin.rpm
-    java_name: "/jdk-11.0.11"
+    java_src: jdk-11.0.11_linux-x64_bin.rpm
+    java_name: "jdk-11.0.11"
   tasks:
 
     - name: Update repos.
@@ -27,41 +26,49 @@
 #         src: ~/.ssh/ansible.pub
 #         dest: /home/oracle/.ssh/
 #  #       create: true
-        
+
     - name: Set authorized key from file.
       authorized_key:
         user: oracle
         state: present
-        key: "{{ lookup('file', '/home/joe/.ssh/ansible.pub') }}"
+        key: "{{ lookup('file', '{{ ssh_home }}/ansible.pub') }}"
 
     - name: add Oracle to sudoers file.
       lineinfile:
         path: /etc/sudoers
         line: "oracle  ALL=(ALL) NOPASSWD:ALL"
 
-    - name: Copy rpm file to server.
-      copy:
-        src: "{{download_file_src}}"
-        dest: "{{download_folder}}"
-
-
-    - name: Install the rpm files.
+    - name: Remove openJDK if it's there.
       yum:
-        name: "{{download_folder}}{{java_src}}"
+        name: open-jdk
+        state: absent
+
+    - name: Copy Java JDK rpm file to server.
+      copy:
+        src: "{{ download_file_src }}/{{ java_src }}"
+        dest: "{{ download_folder }}"
+        mode: 0644
+
+    - name: Install the rpm file.
+      yum:
+        name: "{{ download_folder }}/{{ java_src }}"
         state: present
 
     - name: Fix ownership.
       file:
-        path: "{{java_name}}"
+        path: "/{{ java_name }}"
         owner: root
         group: root
         recurse: true
         state: directory
 
     - name: Make Java available for system.
-      command: 'alternatives --install "/usr/bin/java" "java" "{{java_name}}/bin/java" 2000'
+      command: >
+        alternatives --install "/usr/bin/java"
+        "java" "/{{ java_name }}/bin/java" 2000
+      changed_when: false
 
     - name: Clean up files.
       file:
-        path: "{{download_folder}}/{{java_name}}"
+        path: "{{ download_folder }}/{{ java_name }}"
         state: absent

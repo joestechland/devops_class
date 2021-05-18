@@ -1,18 +1,35 @@
 Review progress so far:
   - Create working linux vm to use as ansible control - can run VSC, git and can use with OIC later
-  - Execucte ad hoc ommands
+  - Execucte ad hoc commands
   - Create and use inventory file and cfg file
   - Created first playbook
 New:
 Steps to creating a new playbook (pseudo steps first)
-Inventory with multiple groups
-vars, use in playbook, syntax (when to use "") and var files
+Goal: create user oracle, add ssh key, add to sudoers file, install java jdk
+- starter.yml - > init.yml
+- replace comments with plays 
+- Add vars: vars_file and inline - syntax (when to use "") 
 modules: lineinfile, authorized keys, file, copy, user, yum, command
 Conditionals - use of when and proper access to complex data - records and dictionaries in python.
 
-Goal: create user oracle, add ssh key, add to sudoers file, iinstall java jdk
+If time: reuse playbooks and split into and use roles.
+https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse.html#re-using-files-and-roles
+Ansible offers four distributed, re-usable artifacts: variables files, task files, playbooks, and roles.
 
-If time: resuse playbooks and split into and use roles.
+        A variables file contains only variables.
+
+        A task file contains only tasks.
+
+        A playbook contains at least one play, and may contain variables, tasks, and other content. You can re-use tightly focused playbooks, but you can only re-use them statically, not dynamically.
+
+        A role contains a set of related tasks, variables, defaults, handlers, and even modules or other plugins in a defined file-tree. Unlike variables files, task files, 
+        or playbooks, roles can be easily uploaded and shared via Ansible Galaxy. See Roles for details about creating and using roles.
+
+
+
+    import tasks will be parsed at the beginning when you run your playbook
+    include tasks will be parsed at the moment Ansible hits them
+https://www.ansiblejunky.com/blog/ansible-101-include-vs-import/
 
 https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse.html#playbooks-reuse
 
@@ -23,7 +40,4 @@ https://adamtheautomator.com/ansible-template/
 
 https://github.com/oracle/oci-ansible-collection
 
-sudo apt install sshfs
-sshfs oracle@ed-devops.us.oracle.com:/home/oracle/ocic_scripts/Ansible_Playbooks/ ~/ed-devops
-cd && fusermount -u ~/ed-devops
-mkdir ed-devops
+

@@ -1,0 +1,76 @@
+# /git_lab/git_lab_prod/projects/git_env/bin/ansible-playbook build.yml -vvvv
+---
+  - name: Create OCI Compute Instance 
+    hosts: 127.0.0.1
+    environment:
+      PYTHONPATH: '/git_lab/git_lab_prod/projects/ansible_modules/OCIC'
+      OCI_USER_KEY_FILE: '/home/oracle/.oci/oci_api_key.pem'
+      OCI_USER_FINGERPRINT: '9a:ef:fb:dc:31:9e:76:d9:66:0f:dc:c6:fc:57:98:05'
+      OCI_TENANCY: '<Tenancy_OCID>'
+      OCI_USER_ID: '<User_OCID>'
+      HTTP_PROXY: 'http://ges-proxy.oracle.com:80'
+      HTTPS_PROXY: 'http://ges-proxy.oracle.com:80'
+    vars:
+      course_title: '<gcc_name>'
+      tenancy_id: '<Tenancy_OCID>'
+      log_path: '<log_path>'
+      oci_region: '<region>'
+      oci_availability_domain: '<availability_domain>'
+      compartment_name: '<compartment_name>'
+      event_id: '<event_id>'
+      student_user: '<student_user>'
+      oci_step: 'true'
+      compute_instance_name_prefix: '<compute_instance_name_prefix>'
+      instance_name: "{{compute_instance_name_prefix}}{{student_user | regex_replace('-', '')}}"
+      instance_shape: '<opc_shape>'
+      image_display_name: '<image_display_name>'
+      publicKey: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCLoQtpcVeaAavM/y2Pxg6D146VfFhZdjSICKFDpq+s5tQSHZii4NFIJA08LVu63DZB5B8iTcVKYWtUAtwmlQN+xSU1FgYo7s3RZqemMDw6aRf69qojBujnkqCLa1hsryo6EPLRttxu2jAQjNm+uvzJSg8dZCDHEkx8YrZ9yiuc5L55Sb7yPnDLb/exIxGB/Iptg/o/rN1GjYnnsGy5VOkEYJ2VdbM+o1WcxBoik+B3FcC8Jbsm6G0AuMte7RKVFr7n+pXnOKIrXUtfbdCh25fQlFLRg9QIGkQrPgmvaf0UqC2RBG4Wp2ldtKz2xavHsp70/v9NN5yhkZ24hNip1KT3'
+      VCN_display_name: 'OCIVCN'
+      Subnet_display_name: 'subnet_vm'
+
+    roles :
+      - inst_create
+
+
+  - name: Restart the squid server
+    hosts: proxy_server
+    gather_facts: no
+
+
+    roles:
+      - restart_proxy
+
+
+  - name: Execute Post build scripting to perform several post install tasks inside the oci compute instance
+    hosts: compute_instance
+    gather_facts: no
+
+    vars:
+      event_id: '<event_id>'
+      student_user: '<student_user>'
+      compute_instance_name_prefix: '<compute_instance_name_prefix>'
+      instance_name: "{{compute_instance_name_prefix}}{{student_user | regex_replace('-', '')}}"
+      pwd_oracle: 'OU{{ event_id }}'
+      pwd_root: 'OU{{ event_id | int + 100 }}'
+
+    roles:
+      - postinstall
+
+
+  - name: Concatenating the README file
+    hosts: 127.0.0.1
+    environment:
+      PYTHONPATH: '/git_lab/git_lab_prod/projects/ansible_modules/OCIC'
+      OCI_USER_KEY_FILE: '/home/oracle/.oci/oci_api_key.pem'
+      OCI_USER_FINGERPRINT: '9a:ef:fb:dc:31:9e:76:d9:66:0f:dc:c6:fc:57:98:05'
+      OCI_TENANCY: '<Tenancy_OCID>'
+      OCI_USER_ID: '<User_OCID>'
+      HTTP_PROXY: 'http://ges-proxy.oracle.com:80'
+      HTTPS_PROXY: 'http://ges-proxy.oracle.com:80'
+    vars:
+      log_path: '<log_path>'
+      student_user: '<student_user>'
+
+    roles :
+      - create_readme
+

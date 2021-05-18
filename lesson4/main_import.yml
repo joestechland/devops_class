@@ -1,0 +1,15 @@
+---
+- hosts: localhost
+
+# this is a 'play' include
+- import_playbook: listofplays.yml
+
+- name: another play.
+  hosts: all
+  gather_facts: false
+  tasks:
+    - debug: 
+        msg: "*** main_import "
+
+# this is a 'task' include
+#   - import_playbook: stuff.yml

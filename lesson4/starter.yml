@@ -1,0 +1,17 @@
+---
+  - hosts: all
+    vars_file:
+      vars.yml
+
+  # Update Repos
+  # Create user Oracle
+  # Set authorized key for user for ssh access
+  # add oracle user to sudo file
+  #
+  # Install JDK
+  # Remove OpenJDK if there
+  # Copy java JDK rpm from file repos to server
+  # Install the rpm file
+  # fix file ownership
+  # make java available to system with alternatives
+  # Clean up files

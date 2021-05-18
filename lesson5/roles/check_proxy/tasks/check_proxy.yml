@@ -1,0 +1,35 @@
+---
+
+
+  - name: Get details of all the compute instances of a specified compartment and region
+    oci_instance_facts:
+      region: '{{ oci_region }}'
+      compartment_id: '{{ compartment_id }}'
+      lifecycle_state: 'RUNNING'
+    register: instance_list
+
+
+  - name: Get instance name list
+    set_fact:
+      instance_name_list: '{{ instance_name_list | default([]) +  [item.display_name] }}'
+    with_items: '{{ instance_list.instances }}'
+    when: "item.display_name != 'ges-proxy-oci'"
+
+
+  - name: Get proxy instance ID
+    set_fact:
+      proxy_instance_id: '{{ item.id }}'
+    with_items: '{{ instance_list.instances }}'
+    when: "item.display_name == 'ges-proxy-oci'"
+
+
+  - name: Stop proxy instance when no other instance is running
+    oci_instance:
+      state: stopped
+      id: '{{ proxy_instance_id }}'
+      region: '{{ oci_region }}'
+      wait: True
+    when:
+      - proxy_instance_id is defined
+      - instance_name_list is not defined
+
