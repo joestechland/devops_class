@@ -20,3 +20,10 @@ https://blogs.oracle.com/oracleuniversity/post/how-to-use-ansible-to-set-up-a-vn
 https://computingforgeeks.com/manage-users-and-groups-on-linux-using-ansible/
 https://www.srcbox.net/projects/gkrellm/
 https://adamtheautomator.com/ansible-template/
+
+https://github.com/oracle/oci-ansible-collection
+
+sudo apt install sshfs
+sshfs oracle@ed-devops.us.oracle.com:/home/oracle/ocic_scripts/Ansible_Playbooks/ ~/ed-devops
+cd && fusermount -u ~/ed-devops
+mkdir ed-devops
