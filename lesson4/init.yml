@@ -20,12 +20,7 @@
         name: oracle
         createhome: true
         password: "{{ vaulted_password | password_hash('sha512') }}"
-
-#     - name: copy ssh key file to ~/.ssh.
-#       copy:
-#         src: ~/.ssh/ansible.pub
-#         dest: /home/oracle/.ssh/
-#  #       create: true
+        group: oracle
 
     - name: Set authorized key from file.
       authorized_key:

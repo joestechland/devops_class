@@ -1,11 +1,11 @@
 Review progress so far:
-  - Create working linux vm to use as ansible control - can run VSC, git and can use with OIC later
+  - Create working linux vm to use as ansible control - can run VSC, git and can use with OCI later
   - Execucte ad hoc commands
   - Create and use inventory file and cfg file
   - Created first playbook
 New:
 Steps to creating a new playbook (pseudo steps first)
-Goal: create user oracle, add ssh key, add to sudoers file, install java jdk
+  Goal: create user oracle, add ssh key, add to sudoers file, install java jdk
 - starter.yml - > init.yml
 - replace comments with plays 
 - Add vars: vars_file and inline - syntax (when to use "") 

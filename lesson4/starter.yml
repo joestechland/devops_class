@@ -2,7 +2,8 @@
   - hosts: all
     vars_file:
       vars.yml
-
+    tasks:
+    
   # Update Repos
   # Create user Oracle
   # Set authorized key for user for ssh access
