@@ -41,3 +41,7 @@ https://adamtheautomator.com/ansible-template/
 https://github.com/oracle/oci-ansible-collection
 
 
+sudo apt install sshfs
+sshfs oracle@ed-devops.us.oracle.com:/home/oracle/ocic_scripts/Ansible_Playbooks/ ~/ed-devops
+cd && fusermount -u ~/ed-devops
+mkdir ed-devops
