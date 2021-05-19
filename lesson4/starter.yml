@@ -1,14 +1,37 @@
 ---
-  - hosts: all
-    vars_file:
-      vars.yml
-    tasks:
-    
-  # Update Repos
-  # Create user Oracle
-  # Set authorized key for user for ssh access
-  # add oracle user to sudo file
-  #
+- hosts: all
+  become: true
+  vars_files: vars/main_vars.yml
+  vars:
+    download_folder: /tmp
+    java_src: jdk-11.0.11_linux-x64_bin.rpm
+    java_name: "jdk-11.0.11"
+
+  tasks:
+    - name: Update Distro.
+      yum:
+        name: "*"
+        state: latest
+        update_cache: true
+
+    - name: Create user Oracle.
+      user:
+        name: oracle
+        createhome: true
+        password: "{{ vaulted_password | password_hash('sha512') }}"
+        group: oracle
+
+    - name: Set authorized key from file.
+      authorized_key:
+        user: oracle
+        state: present
+        key: "{{ lookup('file', '{{ ssh_home }}/ansible.pub') }}"
+
+    - name: add Oracle to sudoers file.
+      lineinfile:
+        path: /etc/sudoers
+        line: "oracle  ALL=(ALL) NOPASSWD:ALL"
+
   # Install JDK
   # Remove OpenJDK if there
   # Copy java JDK rpm from file repos to server

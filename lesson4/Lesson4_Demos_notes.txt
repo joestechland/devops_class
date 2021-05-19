@@ -8,7 +8,9 @@ Steps to creating a new playbook (pseudo steps first)
   Goal: create user oracle, add ssh key, add to sudoers file, install java jdk
 - starter.yml - > init.yml
 - replace comments with plays 
-- Add vars: vars_file and inline - syntax (when to use "") 
+- Add vars:
+  -- create /vars dir and create main_vars.yml 
+   and inline - syntax (when to use "") 
 modules: lineinfile, authorized keys, file, copy, user, yum, command
 Conditionals - use of when and proper access to complex data - records and dictionaries in python.
 

@@ -2,7 +2,7 @@
 - hosts: all
   become: true
   vars_files:
-    - vars.yml
+    - vars/main_vars.yml
   vars:
     download_folder: /tmp
     java_src: jdk-11.0.11_linux-x64_bin.rpm
