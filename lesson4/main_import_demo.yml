@@ -1,6 +1,6 @@
 ---
 - hosts: localhost
-
+  gather_facts: false
 # this is a 'play' include
 - import_playbook: listofplays.yml
 
@@ -8,8 +8,9 @@
   hosts: all
   gather_facts: false
   tasks:
+  # this is a 'task' include
+    - import_tasks: stuff.yml
+    
     - debug: 
         msg: "*** main_import "
 
-# this is a 'task' include
-#   - import_playbook: stuff.yml
