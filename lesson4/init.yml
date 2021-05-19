@@ -1,5 +1,5 @@
 ---
-- hosts: all
+- hosts: db
   become: true
   vars_files:
     - vars/main_vars.yml
@@ -20,7 +20,7 @@
         name: oracle
         createhome: true
         password: "{{ vaulted_password | password_hash('sha512') }}"
-        group: oracle
+ #       group: oracle
 
     - name: Set authorized key from file.
       authorized_key:
