@@ -1,3 +1,9 @@
+handlers, Pretasks
+Roles - simple to complex, ansible-Galaxy
+Templates 
+
+
+
 Use vars file to pass parameters to playbook instead of using update script:
 2 CHoices:
 1. rename build.yml_template and purge.yml_template to build.yml and purge. yml and update vars.yml with  $event_id $domain_name $username $password $PLAYBOOK_NAME(???)

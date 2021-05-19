@@ -1,0 +1,4 @@
+Start working with OCI 
+1. Setup Control machine for OCI CLI & ansible OCI modules
+2. Begin working with OUIT OCI ocic_scripts
+3. Clone (or at least edit) ed-devops Ansible Scripts repo

@@ -2,6 +2,18 @@
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"path": "lesson6"
+		},
+		{
+			"path": "lesson7"
+		},
+		{
+			"path": "lesson8"
+		},
+		{
+			"path": "lesson9"
 		}
 	],
 	"settings": {}

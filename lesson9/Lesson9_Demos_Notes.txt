@@ -1,0 +1,2 @@
+Provision and Configure a new OUIT OCI Env - Build and purge from scratch
+Use TRD as guide - example: Java OCI Programming Class (maven, database) ML Class, WLS Admin
