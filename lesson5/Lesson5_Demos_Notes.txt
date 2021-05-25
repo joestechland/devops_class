@@ -9,8 +9,8 @@ This Week:
     Complete starter.yml w/ addign http
     Use of handlers to restart server or reload daemon
     Use of -v/vvv and callback_whitelist=profile_tasks for monitoring performace and pipelinging=true for increased speed.
-
-    Split into two playbooks and call them from a main.yml
+     Split into two playbooks and call them from a main.yml
+ 
     Import vs Include and use of vars to override values - different values in different playbooks/tasks
     Create basic role with separated playbooks, add /vars folder and /files folder
     
