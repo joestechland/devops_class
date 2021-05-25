@@ -1,0 +1,91 @@
+---
+- hosts: all
+  become: true
+  vars_files: vars/main_vars.yml
+  vars:
+    download_folder: /tmp
+    java_src: jdk-11.0.11_linux-x64_bin.rpm
+    java_name: "jdk-11.0.11"
+
+  tasks:
+    - name: Update Distro.
+      yum:
+        name: "*"
+        state: latest
+        update_cache: true
+
+    - name: Create group Oracle.
+      group: 
+        name: oracle
+        state: present
+
+    - name: Create user Oracle.
+      user:
+        name: oracle
+        createhome: true
+        password: "{{ vaulted_password | password_hash('sha512') }}"
+        group: oracle
+      register: uservar
+
+    - name: Display user name var.
+      debug:
+        var: uservar
+
+    - name: Set authorized key from file.
+      authorized_key:
+        user: oracle
+        state: present
+        key: "{{ lookup('file', '{{ ssh_home }}/ansible.pub') }}"
+
+    - name: add Oracle to sudoers file.
+      lineinfile:
+        path: /etc/sudoers
+        line: "oracle  ALL=(ALL) NOPASSWD:ALL"
+
+    - name: Install Apache.
+      yum:
+        name:
+          - httpd
+          - httpd-devel
+        state: present
+
+    # - name: Copy configuration files.
+    #   copy:
+    #     src: "{{ item.src }}"
+    #     dest: "{{ item.dest }}"
+    #     owner: root
+    #     group: root
+    #     mode: 0644
+    #   with_items:
+    #     - src: httpd.conf
+    #       dest: /etc/httpd/conf/httpd.conf
+    #     - src: httpd-vhosts.conf
+    #       dest: /etc/httpd/conf/httpd-vhosts.conf
+
+    - name: Make sure Apache is started now and at boot.
+      service:
+        name: httpd
+        state: started
+        enabled: true
+      notify:
+        - Restart Apache
+
+    - name: Open port 80 for http access
+      firewalld:
+        service: http
+        permanent: true
+        state: enabled
+      notify: 
+        - Restart firewalld
+        
+# handlers only fire on change
+  handlers:
+    - name: Restart firewalld
+      service: 
+        name: firewalld 
+        state: restarted
+
+    - name: Restart Apache
+      service:
+        name: apache
+        state: restarted

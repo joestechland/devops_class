@@ -2,16 +2,18 @@ Previous week's Review:
     Design a Playbook with comment placeholders
     Add external vars/main_vars.yml file
     Become true/false
-    Introduce conditional, dictionary and uisiing VSC to highlight brackets
+    Introduce conditional, dictionary and using VSC to highlight brackets
 
 This Week:
     Conditionals from data in complex outputs/registered variables + Msg syntax for output
-    Complete starter.yml 
+    Complete starter.yml w/ addign http
+    Use of handlers to restart server or reload daemon
+    Use of -v/vvv and callback_whitelist=profile_tasks for monitoring performace and pipelinging=true for increased speed.
+
     Split into two playbooks and call them from a main.yml
     Import vs Include and use of vars to override values - different values in different playbooks/tasks
     Create basic role with separated playbooks, add /vars folder and /files folder
-    Use of handlers to restart server or reload daemon
-    use of -v/vvv and callback_whitelist=profile_tasks for monitoring performace and pipelinging=true for increased speed.
+    
     Set environment vars - read file and extract values - like env var value
 
 
