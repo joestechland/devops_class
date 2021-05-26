@@ -11,6 +11,11 @@ Last Week:
 
 This Week:
     Register gather_facts or not - differences
+    https://docs.ansible.com/ansible/latest/user_guide/playbooks_vars_facts.html
+    To see the ‘raw’ information as gathered, run this command at the command line:
+        ansible.builtin.setup
+So - registering a separate var is not needed (Thanks to Russ for the Q)
+
     joy of weakly typed languages - a = 3;  Q: Does yamllint or ansible lint catch this?
     Env Vars and setting the Environment during playbook execution and permanently
         Set environment vars - read file and extract values - like env var value
@@ -22,5 +27,5 @@ This Week:
     - How are vars handled when using import and role s- overrding vars and default (Ranjitha Q previous week)
      Import vs Include and use of vars to override values - different values in different playbooks/tasks
     Create basic role with separated playbooks, add /vars folder and /files folder
-    
+    Combine ubuntu_devops_developer palybooks and code for either ubuntu or Centos and virtualbox or vmware
 
