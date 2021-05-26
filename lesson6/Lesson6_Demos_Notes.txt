@@ -10,15 +10,18 @@ Last Week:
     Use of -v/vvv and callback_whitelist=profile_tasks for monitoring performace and pipelinging=true for increased speed.
 
 This Week:
-    Register gather_facts or not - differences
-    https://docs.ansible.com/ansible/latest/user_guide/playbooks_vars_facts.html
-    To see the ‘raw’ information as gathered, run this command at the command line:
-        ansible.builtin.setup
-So - registering a separate var is not needed (Thanks to Russ for the Q)
+    "Register" var for setup not needed
+    Gather-Facts done by default 
+        - can be disdbaled with garther_facts:false
+        https://docs.ansible.com/ansible/latest/user_guide/playbooks_vars_facts.html
+        Can filter what will be collected - by key and by host - use setup module
+        To see the ‘raw’ information as gathered, run this command at the command line:
+            ansible.builtin.setup
+            *** So - setup only used to filter what is gathered (Thanks to Russ for the Q)
 
     joy of weakly typed languages - a = 3;  Q: Does yamllint or ansible lint catch this?
     Env Vars and setting the Environment during playbook execution and permanently
-        Set environment vars - read file and extract values - like env var value
+        See starter.yml  - Set environment vars - read file and extract values - like env var value
     Complete starter.yml w/ adding httpd
     Use of handlers to restart server or reload daemon
     Split into two playbooks and call them from a main.yml
