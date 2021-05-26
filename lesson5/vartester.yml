@@ -1,0 +1,11 @@
+---
+- hosts: all
+  vars:
+    var_list:
+      - one
+      - two
+      - three
+  tasks:
+    - name: Print var list.
+      debug:
+        msg: " var list = {{ var_list[0] }}"

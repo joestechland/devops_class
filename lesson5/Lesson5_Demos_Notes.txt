@@ -5,18 +5,39 @@ Previous week's Review:
     Introduce conditional, dictionary and using VSC to highlight brackets
 
 This Week:
-    Conditionals from data in complex outputs/registered variables + Msg syntax for output
-    Complete starter.yml w/ addign http
-    Use of handlers to restart server or reload daemon
+    Var syntax  - vartester.yml
+    Conditionals from data in complex outputs/registered variables + Msg syntax for output - conditionals.yml
+    If you have a large playbook, it may be useful to run only specific parts of it instead of running the entire playbook. 
+    You can do this with Ansible tags. Using tags to execute or skip selected tasks is a two-step process:
+        Add tags to your tasks, either individually or with tag inheritance from a block, play, role, or import.
+        Select or skip tags when you run your playbook.
     Use of -v/vvv and callback_whitelist=profile_tasks for monitoring performace and pipelinging=true for increased speed.
-     Split into two playbooks and call them from a main.yml
+
+
+    Env Vars, 
+    Complete starter.yml w/ adding httpd
+    Use of handlers to restart server or reload daemon
+    Split into two playbooks and call them from a main.yml
+    - move create user out to separate task list
+    - Import playbooks - demo ubuntu_devops/Developer playbooks
  
     Import vs Include and use of vars to override values - different values in different playbooks/tasks
     Create basic role with separated playbooks, add /vars folder and /files folder
     
     Set environment vars - read file and extract values - like env var value
 
-
+1. --extra-vars passed in via the command line (these always win, no matter what).
+2. Task-level vars (in a task block).
+3. Block-level vars (for all tasks in a block).
+4. Role vars (e.g. [role]/vars/main.yml) and vars from include_vars module.
+5. Vars set via set_facts modules.
+6. Vars set via register in a task.
+7. Individual play-level vars: 1. vars_files 2. vars_prompt 3. vars
+8. Host facts.
+9. Playbookhost_vars.
+10. Playbookgroup_vars.
+11. Inventory:1.host_vars2.group_vars3.vars
+12. Role default vars (e.g. [role]/defaults/main.yml).
 
 
 Use vars file to pass parameters to playbook instead of using update script:

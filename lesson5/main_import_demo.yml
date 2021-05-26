@@ -14,7 +14,7 @@
 
 - hosts: localhost
   tasks:
-    - name: First taks after first play.
+    - name: First task after first play.
       debug:
         msg: Play 2 task 1
 

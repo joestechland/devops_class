@@ -1,5 +1,9 @@
 user: vagrant
-vaulted_password: oracle
+new_user: oracle
+vaulted_password: "{{ new_user }}"
+create_user: "{{ new_user }}"
+create_group: "{{ new_user }}"
 display: 1
 ssh_home: /Users/joe/.ssh
 download_file_src: ~/Downloads
+java_home: /usr/java/jdk_11.0.11
