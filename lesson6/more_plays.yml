@@ -1,0 +1,8 @@
+---
+- hosts: localhost
+  gather_facts: false
+  vars:
+    myname: "joe"
+  tasks:
+  - debug: 
+      msg: "{{ myname }} More Plays"

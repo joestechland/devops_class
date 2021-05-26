@@ -1,0 +1,133 @@
+---
+- hosts: all
+  become: true
+  vars:
+    vaulted_password: oracle
+
+  tasks:
+    # - name: get file stats.
+    #   tags:
+    #   - stats
+    #   stat:
+    #     path: /etc/hosts
+    #   register: filestat
+
+    # - name: show file stats.
+    #   tags: 
+    #   - stats
+    #   debug: var=filestat.stat
+
+    - name: Collect only selected facts
+      setup:
+        filter:
+          - 'ansible_distribution'
+          - 'ansible_machine_id'
+          - 'ansible_*_mb'
+
+    - name: get server stats.
+      setup:
+      register: serverinfo
+
+    - name: show  ansible_facts.
+      tags: 
+      - stats
+      debug: 
+        var: ansible_facts
+
+    - name: show  servinfo.
+      tags: 
+      - stats
+      debug: 
+        var: serverinfo
+
+
+    - name: show server stats 2.
+      tags:
+      - stats
+      debug: 
+        var: serverinfo.ansible_facts.ansible_all_ipv4_addresses
+
+    - name: show server stats 3.
+      tags:
+      - stats    
+      debug: 
+        var: serverinfo.ansible_facts.ansible_mounts
+
+
+    - name: show server stats 4.
+      tags:
+      - stats    
+      debug: 
+        var: serverinfo.ansible_facts.ansible_mounts[0].uuid
+
+
+    - name: show server stats 5.
+      tags:
+      - stats    
+      debug: 
+        var: serverinfo.ansible_facts.ansible_mounts
+    #      debug: var=serverinfo.ansible_facts
+    #      debug: var=serverinfo.ansible_facts.ansible_all_ipv4_addresses[1]
+    #      when: serverinfo.ansible_facts.ansible_all_ipv4_addresses[1] = "192.168.0.201"
+      when: serverinfo.ansible_facts.ansible_mounts[0].device  == "/dev/sda1"
+
+    - name: show server stats 6.
+      tags:
+      - stats    
+      debug: 
+        msg: 
+        - Show server stats 6 {{ serverinfo.ansible_facts.ansible_mounts }}
+        -    
+        - "Show even more server stats!!  {{ serverinfo.ansible_facts.ansible_mounts[1].block_available }}"
+    #      debug: var=serverinfo.ansible_facts
+    #      debug: var=serverinfo.ansible_facts.ansible_all_ipv4_addresses[1]
+    #      when: serverinfo.ansible_facts.ansible_all_ipv4_addresses[1] = "192.168.0.201"
+      when: serverinfo.ansible_facts.ansible_mounts[0].device  == "/dev/sda1"
+
+    - name: show server stats 7.
+      tags:
+      - stats    
+      debug: 
+        msg: 
+ #       - "Show even more server stats!!  {{ serverinfo.ansible_facts.ansible_mounts[1].block_available }}"
+        - "Show even more server stats!!  {{ serverinfo['ansible_facts'].ansible_mounts[1]['block_available'] }}"
+        # *** Note NO Period!!  Usefulwe when nam,es contan a - like ansible-facts - then use [ansible-facts]
+    #      debug: var=serverinfo.ansible_facts
+    #      debug: var=serverinfo.ansible_facts.ansible_all_ipv4_addresses[1]
+    #      when: serverinfo.ansible_facts.ansible_all_ipv4_addresses[1] = "192.168.0.201"
+      when: serverinfo.ansible_facts.ansible_mounts[0].device  == "/dev/sda1"
+
+#       {{ ansible_eth0.ipv4.address }}
+# {{ ansible_eth0['ipv4']['address'] }}
+    - name: test different conditionals.
+      vars:
+        foo: 'foo'
+        bar: 'bar'
+        a: 3;
+      debug:
+        msg: 
+          - "{{ 0 in [1, 2, 3] }}"
+          - "{{ 'see' in 'Can you see me?' }}"
+          - "{{ foo != bar }}"
+          - "{{ (1 < 2) and ('a' not in 'best') }}"
+          - "{{ 4 in [1, 2, 3] }}"
+          - "{{ foo == bar }}"
+          - "foo != foo  + {{ foo != foo }}"
+
+          - "{{ (foo != foo) or (a in [1, 2, 3]) }}"
+# can also test for "even" and "iterable"
+#you can invoke Python’s built-in library functions (like string.split, [number].is_- signed()) to manipl;ute variables
+    - name: Do String manipulation.
+      vars:
+        user_name: 'Joe Greenwald'
+      debug:
+        msg:
+          - user_name
+          - "{{ user_name }}"
+          - "{{ user_name.split(' ') }}"
+          - "{{ user_name[1] }}"
+          - "{{ user_name.count('e') }}"
+          - "{{ user_name[0:3] }}"
+          - "{{ user_name[1] + user_name[8]}}"
+      when:  user_name[0:3]  == 'joe'
+# others upper(), lower(), replace(), strip(), concat + 

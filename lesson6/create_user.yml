@@ -1,0 +1,33 @@
+    - name: Update Distro.
+      yum:
+        name: "*"
+        state: latest
+        update_cache: true
+
+    - name: Create group Oracle.
+      group: 
+        name: oracle
+        state: present
+
+    - name: Create user Oracle.
+      user:
+        name: oracle
+        createhome: true
+        password: "{{ vaulted_password | password_hash('sha512') }}"
+        group: oracle
+      register: uservar
+
+    - name: Display user name var.
+      debug:
+        var: uservar
+
+    - name: Set authorized key from file.
+      authorized_key:
+        user: oracle
+        state: present
+        key: "{{ lookup('file', '{{ ssh_home }}/ansible.pub') }}"
+
+    - name: add Oracle to sudoers file.
+      lineinfile:
+        path: /etc/sudoers
+        line: "oracle  ALL=(ALL) NOPASSWD:ALL"

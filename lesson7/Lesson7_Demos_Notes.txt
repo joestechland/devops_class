@@ -1,2 +1,6 @@
+Testing:
+Molecule
+Roles in more depth – reusing roles from the web, Selective testing with  and Tags and testing with Molecule
+
 Install Weblogic and Oracle Database
 With and without Roles

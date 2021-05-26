@@ -1,4 +1,26 @@
-Testing:
-Tags
-Molecule
-Roles in more depth – reusing roles from the web, Selective testing with  and Tags and testing with Molecule
+Last Week:
+    Var syntax  - vartester.yml
+    Conditionals from data in complex outputs/registered variables + Msg syntax for output - conditionals.yml
+    Python string manipulation
+    If you have a large playbook, it may be useful to run only specific parts of it instead of running the entire playbook. 
+    You can do this with Ansible tags. Using tags to execute or skip selected tasks is a two-step process:
+        Add tags to your tasks, either individually or with tag inheritance from a block, play, role, or import.
+        Select or skip tags when you run your playbook.
+        https://docs.ansible.com/ansible/latest/user_guide/playbooks_tags.html#using-tags
+    Use of -v/vvv and callback_whitelist=profile_tasks for monitoring performace and pipelinging=true for increased speed.
+
+This Week:
+    Register gather_facts or not - differences
+    joy of weakly typed languages - a = 3;  Q: Does yamllint or ansible lint catch this?
+    Env Vars and setting the Environment during playbook execution and permanently
+        Set environment vars - read file and extract values - like env var value
+    Complete starter.yml w/ adding httpd
+    Use of handlers to restart server or reload daemon
+    Split into two playbooks and call them from a main.yml
+    - move create user out to separate task list
+    - Import playbooks - demo ubuntu_devops/Developer playbooks
+    - How are vars handled when using import and role s- overrding vars and default (Ranjitha Q previous week)
+     Import vs Include and use of vars to override values - different values in different playbooks/tasks
+    Create basic role with separated playbooks, add /vars folder and /files folder
+    
+
