@@ -5,107 +5,66 @@
     vaulted_password: oracle
 
   tasks:
-    # - name: get file stats.
-    #   tags:
-    #   - stats
-    #   stat:
-    #     path: /etc/hosts
-    #   register: filestat
-
-    # - name: show file stats.
-    #   tags: 
-    #   - stats
-    #   debug: var=filestat.stat
-
-    - name: Collect only selected facts
-      setup:
-        filter:
-          - 'ansible_distribution'
-          - 'ansible_machine_id'
-          - 'ansible_*_mb'
-
-    - name: get server stats.
-      setup:
-      register: serverinfo
-
-    - name: show  ansible_facts.
-      tags: 
-      - stats
-      debug: 
-        var: ansible_facts
-
-    - name: show  servinfo.
-      tags: 
-      - stats
-      debug: 
-        var: serverinfo
+    - name: print server facts.
+      tags: print
+      block:
+      - name: Collect only selected facts
+        setup:
+          filter:
+            - 'ansible_distribution'
+            - 'ansible_machine_id'
+            - 'ansible_*_mb'
 
 
-    - name: show server stats 2.
-      tags:
-      - stats
-      debug: 
-        var: serverinfo.ansible_facts.ansible_all_ipv4_addresses
-
-    - name: show server stats 3.
-      tags:
-      - stats    
-      debug: 
-        var: serverinfo.ansible_facts.ansible_mounts
+      - name: show  ansible_facts.
+        debug:
+          var: ansible_facts
+        tags:
+  #       - stats
+          - debug
 
 
-    - name: show server stats 4.
-      tags:
-      - stats    
-      debug: 
-        var: serverinfo.ansible_facts.ansible_mounts[0].uuid
+      - name: show server stats 2.
+        debug:
+          var: ansible_facts.all_ipv4_addresses
+        tags:
+          - debug
+
+      - name: show server stats 3.
+        debug:
+          var: ansible_facts.mounts
+        tags:
+          - debug
+
+      - name: show server stats 4.
+        debug:
+          var: ansible_facts.mounts[0].uuid
+        tags:
+          - debug
 
 
-    - name: show server stats 5.
-      tags:
-      - stats    
-      debug: 
-        var: serverinfo.ansible_facts.ansible_mounts
-    #      debug: var=serverinfo.ansible_facts
-    #      debug: var=serverinfo.ansible_facts.ansible_all_ipv4_addresses[1]
-    #      when: serverinfo.ansible_facts.ansible_all_ipv4_addresses[1] = "192.168.0.201"
-      when: serverinfo.ansible_facts.ansible_mounts[0].device  == "/dev/sda1"
+      - name: show server stats 5.
+        debug:
+          var: ansible_facts.mounts
+        when: ansible_facts.mounts[0].device  == "/dev/sda1"
+        tags: [ never, debug ]
 
-    - name: show server stats 6.
-      tags:
-      - stats    
-      debug: 
-        msg: 
-        - Show server stats 6 {{ serverinfo.ansible_facts.ansible_mounts }}
-        -    
-        - "Show even more server stats!!  {{ serverinfo.ansible_facts.ansible_mounts[1].block_available }}"
-    #      debug: var=serverinfo.ansible_facts
-    #      debug: var=serverinfo.ansible_facts.ansible_all_ipv4_addresses[1]
-    #      when: serverinfo.ansible_facts.ansible_all_ipv4_addresses[1] = "192.168.0.201"
-      when: serverinfo.ansible_facts.ansible_mounts[0].device  == "/dev/sda1"
+      - name: show server stats 6.
+        debug:
+          msg:
+            - Show server stats 6 {{ ansible_facts.mounts }}
+            -
+            - "Show even more server stats!!  {{ ansible_facts.mounts[1].block_available }}"
+        when: ansible_facts.mounts[0].device  == "/dev/sda1"
+        tags: [ never, debug ]
 
-    - name: show server stats 7.
-      tags:
-      - stats    
-      debug: 
-        msg: 
- #       - "Show even more server stats!!  {{ serverinfo.ansible_facts.ansible_mounts[1].block_available }}"
-        - "Show even more server stats!!  {{ serverinfo['ansible_facts'].ansible_mounts[1]['block_available'] }}"
-        # *** Note NO Period!!  Usefulwe when nam,es contan a - like ansible-facts - then use [ansible-facts]
-    #      debug: var=serverinfo.ansible_facts
-    #      debug: var=serverinfo.ansible_facts.ansible_all_ipv4_addresses[1]
-    #      when: serverinfo.ansible_facts.ansible_all_ipv4_addresses[1] = "192.168.0.201"
-      when: serverinfo.ansible_facts.ansible_mounts[0].device  == "/dev/sda1"
-
-#       {{ ansible_eth0.ipv4.address }}
-# {{ ansible_eth0['ipv4']['address'] }}
     - name: test different conditionals.
       vars:
         foo: 'foo'
         bar: 'bar'
         a: 3;
       debug:
-        msg: 
+        msg:
           - "{{ 0 in [1, 2, 3] }}"
           - "{{ 'see' in 'Can you see me?' }}"
           - "{{ foo != bar }}"
@@ -128,6 +87,6 @@
           - "{{ user_name[1] }}"
           - "{{ user_name.count('e') }}"
           - "{{ user_name[0:3] }}"
-          - "{{ user_name[1] + user_name[8]}}"
-      when:  user_name[0:3]  == 'joe'
-# others upper(), lower(), replace(), strip(), concat + 
+          - "{{ user_name[1] + user_name[8] }}"
+      when: user_name[0:3]  == 'joe'
+# others upper(), lower(), replace(), strip(), concat +

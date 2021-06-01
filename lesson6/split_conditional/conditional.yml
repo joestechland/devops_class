@@ -1,0 +1,30 @@
+---
+- hosts: all
+  become: true
+
+  tasks:
+
+    # 1 import print_serverinfo as set of tasks
+    # - name: Import server info tasks.
+    #   import_tasks: print_serverinfo.yml
+    #   tags: print
+
+    # 2. Use roles for tasks intead of import_tqasks
+    - name: print server info using role.
+      import_role: 
+        name: print_serverinfo
+
+# Note: import_playbook does not work here in middle of set of task/plays
+
+    # 3.  import role for string manip as part of task list
+    # - name: import role for string manipulation as a tasks in a task list.
+    #   import_role: 
+    #     name: test_strings
+
+  # 4. classic way to add roles - at same level as tasks
+  #  roles:
+  #   - role: test_conditions
+
+# 1. import_playbook works OK before or after
+- name: import playbook for testing conditions.
+  import_playbook: test_conditions.yml

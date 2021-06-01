@@ -24,6 +24,9 @@
           - 'ansible_machine_id'
           - 'ansible_*_mb'
 
+    - name: get server stats.
+      setup:
+      register: serverinfo
 
     - name: show  ansible_facts.
       tags: 
@@ -31,49 +34,55 @@
       debug: 
         var: ansible_facts
 
+    - name: show  servinfo.
+      tags: 
+      - stats
+      debug: 
+        var: serverinfo
+
 
     - name: show server stats 2.
       tags:
       - stats
       debug: 
-        var: ansible_facts.all_ipv4_addresses
+        var: serverinfo.ansible_facts.ansible_all_ipv4_addresses
 
     - name: show server stats 3.
       tags:
       - stats    
       debug: 
-        var: ansible_facts.mounts
+        var: serverinfo.ansible_facts.ansible_mounts
 
 
     - name: show server stats 4.
       tags:
       - stats    
       debug: 
-        var: ansible_facts.mounts[0].uuid
+        var: serverinfo.ansible_facts.ansible_mounts[0].uuid
 
 
     - name: show server stats 5.
       tags:
       - stats    
       debug: 
-        var: ansible_facts.mounts
+        var: serverinfo.ansible_facts.ansible_mounts
     #      debug: var=serverinfo.ansible_facts
     #      debug: var=serverinfo.ansible_facts.ansible_all_ipv4_addresses[1]
     #      when: serverinfo.ansible_facts.ansible_all_ipv4_addresses[1] = "192.168.0.201"
-      when: ansible_facts.mounts[0].device  == "/dev/sda1"
+      when: serverinfo.ansible_facts.ansible_mounts[0].device  == "/dev/sda1"
 
     - name: show server stats 6.
       tags:
       - stats    
       debug: 
         msg: 
-        - Show server stats 6 {{ ansible_facts.mounts }}
+        - Show server stats 6 {{ serverinfo.ansible_facts.ansible_mounts }}
         -    
-        - "Show even more server stats!!  {{ ansible_facts.mounts[1].block_available }}"
+        - "Show even more server stats!!  {{ serverinfo.ansible_facts.ansible_mounts[1].block_available }}"
     #      debug: var=serverinfo.ansible_facts
     #      debug: var=serverinfo.ansible_facts.ansible_all_ipv4_addresses[1]
     #      when: serverinfo.ansible_facts.ansible_all_ipv4_addresses[1] = "192.168.0.201"
-      when: ansible_facts.mounts[0].device  == "/dev/sda1"
+      when: serverinfo.ansible_facts.ansible_mounts[0].device  == "/dev/sda1"
 
     - name: show server stats 7.
       tags:
@@ -81,12 +90,12 @@
       debug: 
         msg: 
  #       - "Show even more server stats!!  {{ serverinfo.ansible_facts.ansible_mounts[1].block_available }}"
-        - "Show even more server stats!!  {{ ansible_facts.ansible_mounts[1]['block_available'] }}"
+        - "Show even more server stats!!  {{ serverinfo['ansible_facts'].ansible_mounts[1]['block_available'] }}"
         # *** Note NO Period!!  Usefulwe when nam,es contan a - like ansible-facts - then use [ansible-facts]
     #      debug: var=serverinfo.ansible_facts
     #      debug: var=serverinfo.ansible_facts.ansible_all_ipv4_addresses[1]
     #      when: serverinfo.ansible_facts.ansible_all_ipv4_addresses[1] = "192.168.0.201"
-      when: ansible_facts.mounts[0].device  == "/dev/sda1"
+      when: serverinfo.ansible_facts.ansible_mounts[0].device  == "/dev/sda1"
 
 #       {{ ansible_eth0.ipv4.address }}
 # {{ ansible_eth0['ipv4']['address'] }}

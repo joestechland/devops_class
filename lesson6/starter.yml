@@ -12,7 +12,7 @@
         update_cache: true
 
     - name: Create group.
-      group: 
+      group:
         name: "{{ create_group }}"
         state: present
 
@@ -59,15 +59,15 @@
 #        line: "JAVA_HOME=/usr/java/jdk_11.0.11"
         line: "JAVA_HOME={{ java_home }}"
 
-    - name: Get the value of the environment variable we just added. 
+    - name: Get the value of the environment variable we just added.
       shell: 'source ~/.bash_profile && echo $JAVA_HOME'
       register: foo
-    - name: Print the value of the environment variable. 
+    - name: Print the value of the environment variable.
       debug:
         msg: "The variable is {{ foo.stdout }}"
 
 
-    - name: Get list of groups. 
+    - name: Get list of groups.
       command: groups
       register: group_list
       changed_when: false
@@ -91,17 +91,16 @@
         service: http
         permanent: true
         state: enabled
-      notify: 
+      notify:
         - Restart firewalld
-        
 # handlers only fire on change
 # handlers can call other handlers
 # force handlers to fire with meta: flush_handlers
-# --force-handlers at command line 0 so they run even on fail
+# --force-handlers at command line - so they run even on fail
   handlers:
     - name: Restart firewalld
-      service: 
-        name: firewalld 
+      service:
+        name: firewalld
         state: restarted
 
     - name: Restart Apache

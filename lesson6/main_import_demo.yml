@@ -8,6 +8,8 @@
 
 - name: Import this is playbook.
   import_playbook: listofplays.yml
+  tags:
+    - import
 
 - name: Import another Playbook.
   import_playbook: more_plays.yml

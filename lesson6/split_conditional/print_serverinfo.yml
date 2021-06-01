@@ -1,0 +1,53 @@
+---
+- name: print server facts.
+  tags: print
+  block:
+  - name: Collect only selected facts
+    setup:
+      filter:
+        - 'ansible_distribution'
+        - 'ansible_machine_id'
+        - 'ansible_*_mb'
+
+
+  - name: show  ansible_facts.
+    debug:
+      var: ansible_facts
+    tags:
+#       - stats
+      - debug
+
+
+  - name: show server stats 2.
+    debug:
+      var: ansible_facts.all_ipv4_addresses
+    tags:
+      - debug
+
+  - name: show server stats 3.
+    debug:
+      var: ansible_facts.mounts
+    tags:
+      - debug
+
+  - name: show server stats 4.
+    debug:
+      var: ansible_facts.mounts[0].uuid
+    tags:
+      - debug
+
+
+  - name: show server stats 5.
+    debug:
+      var: ansible_facts.mounts
+    when: ansible_facts.mounts[0].device  == "/dev/sda1"
+    tags: [ never, debug ]
+
+  - name: show server stats 6.
+    debug:
+      msg:
+        - Show server stats 6 {{ ansible_facts.mounts }}
+        -
+        - "Show even more server stats!!  {{ ansible_facts.mounts[1].block_available }}"
+    when: ansible_facts.mounts[0].device  == "/dev/sda1"
+    tags: [ never, debug ]

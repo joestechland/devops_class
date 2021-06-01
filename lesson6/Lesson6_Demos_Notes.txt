@@ -3,32 +3,197 @@ Last Week:
     Conditionals from data in complex outputs/registered variables + Msg syntax for output - conditionals.yml
     Python string manipulation
     If you have a large playbook, it may be useful to run only specific parts of it instead of running the entire playbook. 
-    You can do this with Ansible tags. Using tags to execute or skip selected tasks is a two-step process:
-        Add tags to your tasks, either individually or with tag inheritance from a block, play, role, or import.
-        Select or skip tags when you run your playbook.
-        https://docs.ansible.com/ansible/latest/user_guide/playbooks_tags.html#using-tags
     Use of -v/vvv and callback_whitelist=profile_tasks for monitoring performace and pipelinging=true for increased speed.
 
 This Week:
-    "Register" var for setup not needed
+    "Register" serverinfo var for setup not needed - show diffs
     Gather-Facts done by default 
-        - can be disdbaled with garther_facts:false
+        - can be disabled  with garther_facts:false
         https://docs.ansible.com/ansible/latest/user_guide/playbooks_vars_facts.html
         Can filter what will be collected - by key and by host - use setup module
         To see the ‘raw’ information as gathered, run this command at the command line:
             ansible.builtin.setup
             *** So - setup only used to filter what is gathered (Thanks to Russ for the Q)
 
-    joy of weakly typed languages - a = 3;  Q: Does yamllint or ansible lint catch this?
+    joy of weakly typed languages - a = 3;  Q: Does yamllint or ansible lint catch this? NO!
+
+    Render whitespace in VSC:    
+        editor.renderWhitespace": "all"
+        *** https://marketplace.visualstudio.com/items?itemName=oderwat.indent-rainbow&showReviewDialog=true   - shows indentation better
+        "workbench.colorCustomizations": {
+
+        "editorWhitespace.foreground": "#fbff006c",
+
+    More about tags:
+        Using tags to execute or skip selected tasks is a two-step process:
+        Add tags to your tasks, either individually or with tag inheritance from a block, play, role, or import.
+        Select or skip tags when you run your playbook.
+        https://docs.ansible.com/ansible/latest/user_guide/playbooks_tags.html#using-tags
+    --tags all - run all tasks & ignore tags (default behavior)
+    --tags [tag1, tag2] - run only tasks with either the tag tag1 or the tag tag2
+    --skip-tags [tag3, tag4] - run all tasks except those with either the tag tag3 or the tag tag4
+    --tags tagged - run only tasks with at least one tag
+    --tags untagged - run only tasks with no tags
+        https://docs.ansible.com/ansible/latest/user_guide/playbooks_tags.html
+    Tags usage:
+
+If you assign the never tag to a task or play, Ansible will skip that task or play unless you specifically request it (--tags never).
+For example:
+    conditional.yml      
+        - name: show server stats 5.
+            debug:
+            var: ansible_facts.mounts
+            when: ansible_facts.mounts[0].device  == "/dev/sda1"
+            tags: [ never, debug ]
+     debug task in the example above only runs when you specifically request the debug or never tags.
+    ansible-playbook conditional.yml --tags debug    
+    vs. ansible-playbook conditional.yml
+
+    
+    Can create blocks of plays and assign tag to the block:
+    ansible-playbook conditional.yml --skip-tags print
+     - name: print server facts.
+      tags: print
+      block:
+      - name: Collect only selected facts
+        setup:
+          filter:
+            - 'ansible_distribution'
+            - 'ansible_machine_id'
+            - 'ansible_*_mb'
+        ...
+
     Env Vars and setting the Environment during playbook execution and permanently
         See starter.yml  - Set environment vars - read file and extract values - like env var value
+    
+    Handlers:
+
+        Sometimes you want a task to run only when a change is made on a machine. 
+        For example, you may want to restart a service if a task updates the configuration of that service, 
+        but not if the configuration is unchanged. Ansible uses handlers to address this use case. Handlers are tasks that only run when notified. 
+        Each handler should have a globally unique name.
+        https://docs.ansible.com/ansible/latest/user_guide/playbooks_handlers.html
     Complete starter.yml w/ adding httpd
-    Use of handlers to restart server or reload daemon
+    *** Disable and remove httpd first for class demo
+        Use of handlers to restart server or reload daemon
+    
+
+    Reuse in Ansible: 
+    Ansible offers four distributed, re-usable artifacts: variables files, task files, playbooks, and roles.
+        A variables file contains only variables.
+        A task file contains only tasks.
+        A playbook contains at least one play, and may contain variables, tasks, and other content. You can re-use tightly focused playbooks, 
+            but you can only re-use them statically, not dynamically.
+        A role contains a set of related tasks, variables, defaults, handlers, and even modules or other plugins in a defined file-tree. 
+        Unlike variables files, task files, or playbooks, roles can be easily uploaded and shared via Ansible Galaxy. 
+            Ansible Galaxy refers to the Galaxy website, a free site for finding, downloading, and sharing community developed roles.
+
+    Split Conditional into separate playbooks:
+        Display server info, test conditionals, do string manipulation
+        "Refactor" the larger playbook into smaller playbooks/taks/roles and call them from the main_conditional.yml
+        1. Create main_conditional.yml
+        1. Refactor server info into a set of reusble tasks:
+            import print_server.yml
+        2. Ref
+
+        For dynamic re-use, add an include_* task in the tasks section of a play:
+            include_role
+            include_tasks
+            include_vars
+
+        For static re-use, add an import_* task in the tasks section of a play:
+            import_role
+            import_tasks
+        Importing roles, tasks, or playbooks adds them to a playbook statically. Ansible pre-processes imported files and roles before it runs any tasks in a playbook, so imported content is never affected by other tasks within the top-level playbook.
+        You can pass variables to imports. You must pass variables if you want to run an imported file more than once in a playbook. For example:
+        tasks:
+        - import_tasks: wordpress.yml
+        vars:
+            wp_user: timmy
+
+        - import_tasks: wordpress.yml
+        vars:
+            wp_user: alice
+
+        - import_tasks: wordpress.yml
+        vars:
+            wp_user: bob
+
+    https://docs.ansible.com/ansible/latest/user_guide/playbooks_reuse.html
+
+Can add tags to imports/includes
+    - name: Import this is playbook.
+        import_playbook: listofplays.yml
+      tags:
+        - import
+
     Split into two playbooks and call them from a main.yml
     - move create user out to separate task list
     - Import playbooks - demo ubuntu_devops/Developer playbooks
     - How are vars handled when using import and role s- overrding vars and default (Ranjitha Q previous week)
      Import vs Include and use of vars to override values - different values in different playbooks/tasks
-    Create basic role with separated playbooks, add /vars folder and /files folder
-    Combine ubuntu_devops_developer palybooks and code for either ubuntu or Centos and virtualbox or vmware
+
+    https://www.ansiblejunky.com/blog/ansible-101-include-vs-import/
+    import tasks will be parsed at the beginning when you run your playbook = STATIC
+    include tasks will be parsed at the moment Ansible hits them = DYNAMIC (ex: syntax errros not encoiuntered until include code is executed, noty at first parse like import
+    *** Tags applied to the incliud ITSELF not the contaned taks, p,like IMPORT)
+
+
+Roles:
+An Ansible role has a defined directory structure with eight main standard directories. You must include at least one of these directories in each role. You can omit any directories the role does not use. For example:
+
+        # playbooks
+        site.yml
+        webservers.yml
+        fooservers.yml
+        roles/
+            common/
+                tasks/
+                handlers/
+                library/
+                files/
+                templates/
+                vars/
+                defaults/
+                meta/
+            webservers/
+                tasks/
+                defaults/
+                meta/
+
+    By default Ansible will look in each directory within a role for a main.yml file for relevant content (also main.yaml and main):
+
+        tasks/main.yml - the main list of tasks that the role executes.
+        handlers/main.yml - handlers, which may be used within or outside this role.
+        library/my_module.py - modules, which may be used within this role (see Embedding modules and plugins in roles for more information).
+        defaults/main.yml - default variables for the role (see Using Variables for more information). These variables have the lowest priority of any variables available, and can be easily overridden by any other variable, including inventory variables.
+        vars/main.yml - other variables for the role (see Using Variables for more information).
+        files/main.yml - files that the role deploys.
+        templates/main.yml - templates that the role deploys.
+        meta/main.yml - metadata for the role, including role dependencies.
+
+        The classic (original) way to use roles is with the roles option for a given play:
+        ---
+        - hosts: webservers
+        roles:
+            - common
+            - webservers
+
+        When you use the roles option at the play level, for each role ‘x’:
+
+            If roles/x/tasks/main.yml exists, Ansible adds the tasks in that file to the play.
+            If roles/x/handlers/main.yml exists, Ansible adds the handlers in that file to the play.
+            If roles/x/vars/main.yml exists, Ansible adds the variables in that file to the play.
+            If roles/x/defaults/main.yml exists, Ansible adds the variables in that file to the play.
+            If roles/x/meta/main.yml exists, Ansible adds any role dependencies in that file to the list of roles.
+            Any copy, script, template or include tasks (in the role) can reference files in roles/x/{files,templates,tasks}/ 
+            (dir depends on task) without having to path them relatively or absolutely.
+
+        Convert conditionals.yml to imported taks and playbooks, then roles.
+        LOok in split_conditional
+            notice import playbooks and tasks
+            notice roles/ dir 
+            cd roles
+                ansible-galaxy init name_of_role
+                - creates "boilerplate/scaffolding" for full roles and dirs with empty main.yml for tqasks, vars, handlers, meta...
 

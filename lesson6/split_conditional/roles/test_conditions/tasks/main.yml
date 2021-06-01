@@ -1,0 +1,18 @@
+---
+- name: test different conditionals.
+  vars:
+    foo: 'foo'
+    bar: 'bar'
+    a: 3;
+  debug:
+    msg:
+      - "{{ 0 in [1, 2, 3] }}"
+      - "{{ 'see' in 'Can you see me?' }}"
+      - "{{ foo != bar }}"
+      - "{{ (1 < 2) and ('a' not in 'best') }}"
+      - "{{ 4 in [1, 2, 3] }}"
+      - "{{ foo == bar }}"
+      - "foo != foo  + {{ foo != foo }}"
+
+      - "{{ (foo != foo) or (a in [1, 2, 3]) }}"
+# can also test for "even" and "iterable"
