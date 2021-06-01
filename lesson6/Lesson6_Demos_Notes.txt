@@ -1,6 +1,7 @@
 Last Week:
     Var syntax  - vartester.yml
-    Conditionals from data in complex outputs/registered variables + Msg syntax for output - conditionals.yml
+    conditional.yml 
+    Conditionals from data in complex outputs/registered variables + Msg syntax for output 
     Python string manipulation
     If you have a large playbook, it may be useful to run only specific parts of it instead of running the entire playbook. 
     Use of -v/vvv and callback_whitelist=profile_tasks for monitoring performace and pipelinging=true for increased speed.
@@ -8,13 +9,21 @@ Last Week:
 This Week:
     "Register" serverinfo var for setup not needed - show diffs
     Gather-Facts done by default 
-        - can be disabled  with garther_facts:false
+        - can be disabled  with gather_facts:false
         https://docs.ansible.com/ansible/latest/user_guide/playbooks_vars_facts.html
         Can filter what will be collected - by key and by host - use setup module
+        conditional.yml: 
+        - name: Collect only selected facts
+        setup:
+          filter:
+            - 'ansible_distribution'
+            - 'ansible_machine_id'
+            - 'ansible_*_mb'
+
         To see the ‘raw’ information as gathered, run this command at the command line:
             ansible.builtin.setup
             *** So - setup only used to filter what is gathered (Thanks to Russ for the Q)
-
+    conditional.yml: Boolean Expression eval
     joy of weakly typed languages - a = 3;  Q: Does yamllint or ansible lint catch this? NO!
 
     Render whitespace in VSC:    
