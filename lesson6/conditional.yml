@@ -42,7 +42,6 @@
         tags:
           - debug
 
-
       - name: show server stats 5.
         debug:
           var: ansible_facts.mounts
