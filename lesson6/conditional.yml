@@ -12,14 +12,18 @@
       - name: Collect only selected facts
         setup:
           filter:
-          - 'ansible_distribution'
-          - 'ansible_machine_id'
-          - 'ansible_*_mb'
+          # - 'ansible_distribution'
+          # - 'ansible_machine_id'
+          # - 'ansible_*_mb'
+          - ansible_facts.mounts[0].uuid
+          - ansible_facts.mounts[1].block_available
+          - ansible_facts.mounts[0].device
+
         register: filtered_facts
 
       - name: show  filtered_facts.
         debug:
-          var: filtered_facts
+          var: "{{ filtered_facts }}"
         tags:
   #       - stats
           - debug        
