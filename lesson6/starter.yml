@@ -30,7 +30,7 @@
 
     - name: Set authorized key from file.
       authorized_key:
-        user: oracle
+        user: "{{ create_user }}"
         state: present
         key: "{{ lookup('file', '{{ ssh_home }}/ansible.pub') }}"
 

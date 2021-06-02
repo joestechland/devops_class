@@ -9,7 +9,7 @@
     #   import_tasks: print_serverinfo.yml
     #   tags: print
 
-    # 2. Use roles for tasks intead of import_tqasks
+    # 2. Use roles for tasks intead of import_tasks
     - name: print server info using role.
       import_role: 
         name: print_serverinfo

@@ -8,19 +8,28 @@
     - name: print server facts.
       tags: print
       block:
+
       - name: Collect only selected facts
         setup:
           filter:
-            - 'ansible_distribution'
-            - 'ansible_machine_id'
-            - 'ansible_*_mb'
+          - 'ansible_distribution'
+          - 'ansible_machine_id'
+          - 'ansible_*_mb'
+        register: filtered_facts
 
-      - name: show  ansible_facts.
+      - name: show  filtered_facts.
         debug:
-          var: ansible_facts
+          var: filtered_facts
         tags:
   #       - stats
-          - debug
+          - debug        
+
+  #     - name: show  ansible_facts.
+  #       debug:
+  #         var: ansible_facts
+  #       tags:
+  # #       - stats
+  #         - debug
 
       - name: show server stats 2.
         debug:
@@ -59,7 +68,7 @@
       vars:
         foo: 'foo'
         bar: 'bar'
-        a: 3;
+        a: 3
       debug:
         msg:
           - "{{ 0 in [1, 2, 3] }}"

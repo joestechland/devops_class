@@ -3,7 +3,7 @@
   vars:
     foo: 'foo'
     bar: 'bar'
-    a: 3;
+    a: 3
   debug:
     msg:
       - "{{ 0 in [1, 2, 3] }}"
