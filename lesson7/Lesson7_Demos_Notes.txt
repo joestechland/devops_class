@@ -1,4 +1,8 @@
-Last WeeK:
+Last Week:
+
+Gather facts:
+The filter option filters only the first level subkey below ansible_facts.
+
 
 This Week:
   Reuse in Ansible: 
