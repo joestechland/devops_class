@@ -15,14 +15,12 @@
             - 'ansible_machine_id'
             - 'ansible_*_mb'
 
-
       - name: show  ansible_facts.
         debug:
           var: ansible_facts
         tags:
   #       - stats
           - debug
-
 
       - name: show server stats 2.
         debug:
