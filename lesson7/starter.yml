@@ -1,0 +1,114 @@
+---
+- hosts: all
+  become: true
+  vars_files: vars/main_vars.yml
+
+  tasks:
+
+    - name: Update Distro.
+      yum:
+        name: "*"
+        state: latest
+        update_cache: true
+
+    - name: Create group.
+      group:
+        name: "{{ create_group }}"
+        state: present
+
+    - name: Create user .
+      user:
+        name: "{{ create_user }}"
+        createhome: true
+        password: "{{ vaulted_password | password_hash('sha512') }}"
+        group: "{{ create_group }}"
+      register: uservar
+
+    - name: Display user name var.
+      debug:
+        var: uservar
+
+    - name: Set authorized key from file.
+      authorized_key:
+        user: "{{ create_user }}"
+        state: present
+        key: "{{ lookup('file', '{{ ssh_home }}/ansible.pub') }}"
+
+    - name: add Oracle to sudoers file.
+      lineinfile:
+        path: /etc/sudoers
+        line: "oracle  ALL=(ALL) NOPASSWD:ALL"
+
+    # - name: import create user.
+    #   import_tasks: create_user.yml
+
+# appedn if not exist, replace if it does
+# all following  tasks have access to these env vars
+# use copy of tempaltesif you have a lot of env vars
+    - name: Add an environment variable to the remote user's shell.
+      lineinfile:
+        dest: ~/.bash_profile
+        regexp: '^JAVA_HOME='
+#        line: "JAVA_HOME=/usr/java/jdk_11.0.11"
+        line: "JAVA_HOME={{ java_home }}"
+
+    - name: Get the value of the environment variable we just added.
+      shell: 'source ~/.bash_profile && echo $JAVA_HOME'
+      register: foo
+    - name: Print the value of the environment variable.
+      debug:
+        msg: "The variable is {{ foo.stdout }}"
+
+
+    - name: Get list of groups.
+      command: groups
+      register: group_list
+      changed_when: false
+
+    - name: Print groups.
+      debug:
+        msg: "The groups are: {{ group_list }}"
+# use stdout to just get the groups
+
+    - name: Install Apache.
+      yum:
+        name:
+          - httpd
+          - httpd-devel
+        state: absent
+      register: apache_stat
+
+    - name: print apache stat.
+      debug:
+        msg: "Apache status: {{ apache_stat.results[0] }}"
+
+    - name: Make sure Apache is started now and at boot.
+      service:
+        name: httpd
+        state: started
+        enabled: true
+      notify:
+        - Restart Apache
+      when: apache_stat.results[0] != "httpd is not installed"
+
+    - name: Open port 80 for http access
+      firewalld:
+        service: http
+        permanent: true
+        state: disabled
+      notify:
+        - Restart firewalld
+# handlers only fire on change
+# handlers can call other handlers
+# force handlers to fire with meta: flush_handlers
+# --force-handlers at command line - so they run even on fail
+  handlers:
+    - name: Restart firewalld
+      service:
+        name: firewalld
+        state: restarted
+
+    - name: Restart Apache
+      service:
+        name: httpd
+        state: restarted

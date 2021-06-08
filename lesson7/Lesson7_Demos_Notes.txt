@@ -1,10 +1,17 @@
 Last Week:
 
-Gather facts:
-The filter option filters only the first level subkey below ansible_facts.
+
 
 
 This Week:
+Gather facts:
+The filter option filters only the first level subkey below ansible_facts.
+
+Env Vars: using inline to create env var entries
+
+Handlers: starter.yml:
+    restart / re-enable apache and firewalld to see handlers run
+
   Reuse in Ansible: 
     Ansible offers four distributed, re-usable artifacts: variables files, task files, playbooks, and roles.
         A variables file contains only variables.

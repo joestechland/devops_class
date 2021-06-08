@@ -5,14 +5,14 @@
   tasks:
 
     # 1 import print_serverinfo as set of tasks
-    # - name: Import server info tasks.
-    #   import_tasks: print_serverinfo.yml
-    #   tags: print
+    - name: Import server info tasks.
+      import_tasks: print_serverinfo.yml
+      tags: print
 
     # 2. Use roles for tasks intead of import_tasks
-    - name: print server info using role.
-      import_role: 
-        name: print_serverinfo
+    # - name: print server info using role.
+    #   import_role: 
+    #     name: print_serverinfo
 
 # Note: import_playbook does not work here in middle of set of task/plays
 
@@ -28,3 +28,7 @@
 # 1. import_playbook works OK before or after
 - name: import playbook for testing conditions.
   import_playbook: test_conditions.yml
+
+- name: import string manipulation.
+  import_playbook: strings.yml
+# Why does it not work?

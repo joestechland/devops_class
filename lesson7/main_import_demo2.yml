@@ -1,0 +1,19 @@
+---
+- hosts: localhost
+  gather_facts: false
+
+
+- name: Import this is playbook.
+  import_playbook: listofplays.yml
+
+- name: Import another Playbook.
+  import_playbook: more_plays.yml
+
+### Does not like Tasks in same play as imports
+
+- hosts: localhost
+  tasks:
+    - name: First tasks after first play.
+      debug:
+        msg: Play 2 task 1
+
