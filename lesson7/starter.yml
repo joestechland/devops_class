@@ -5,40 +5,10 @@
 
   tasks:
 
-    - name: Update Distro.
-      yum:
-        name: "*"
-        state: latest
-        update_cache: true
+    - name: import yum update.
+      import_tasks: update_yum.yml
 
-    - name: Create group.
-      group:
-        name: "{{ create_group }}"
-        state: present
-
-    - name: Create user .
-      user:
-        name: "{{ create_user }}"
-        createhome: true
-        password: "{{ vaulted_password | password_hash('sha512') }}"
-        group: "{{ create_group }}"
-      register: uservar
-
-    - name: Display user name var.
-      debug:
-        var: uservar
-
-    - name: Set authorized key from file.
-      authorized_key:
-        user: "{{ create_user }}"
-        state: present
-        key: "{{ lookup('file', '{{ ssh_home }}/ansible.pub') }}"
-
-    - name: add Oracle to sudoers file.
-      lineinfile:
-        path: /etc/sudoers
-        line: "oracle  ALL=(ALL) NOPASSWD:ALL"
-
+    
     # - name: import create user.
     #   import_tasks: create_user.yml
 
@@ -51,6 +21,7 @@
         regexp: '^JAVA_HOME='
 #        line: "JAVA_HOME=/usr/java/jdk_11.0.11"
         line: "JAVA_HOME={{ java_home }}"
+      tags: user        
 
     - name: Get the value of the environment variable we just added.
       shell: 'source ~/.bash_profile && echo $JAVA_HOME'
@@ -58,16 +29,19 @@
     - name: Print the value of the environment variable.
       debug:
         msg: "The variable is {{ foo.stdout }}"
+      tags: users        
 
 
     - name: Get list of groups.
       command: groups
       register: group_list
       changed_when: false
+      tags: user      
 
     - name: Print groups.
       debug:
         msg: "The groups are: {{ group_list }}"
+      tags: user        
 # use stdout to just get the groups
 
     - name: Install Apache.
@@ -95,7 +69,7 @@
       firewalld:
         service: http
         permanent: true
-        state: disabled
+        state: enabled
       notify:
         - Restart firewalld
 # handlers only fire on change

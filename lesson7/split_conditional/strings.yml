@@ -1,4 +1,6 @@
 ---
+- hosts: all
+  tasks:
     - name: Do String manipulation.
       vars:
         user_name: 'Joe Greenwald'

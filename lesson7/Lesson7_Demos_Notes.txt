@@ -1,5 +1,8 @@
 Last Week:
-
+    Ansible facts
+    Tags
+    Handlers
+    When conditionals
 
 
 
@@ -96,6 +99,12 @@ An Ansible role has a defined directory structure with eight main standard direc
                 meta/
 
     By default Ansible will look in each directory within a role for a main.yml file for relevant content (also main.yaml and main):
+
+You can create this manually or - better - with ansible-galaxy:
+
+    cd roles
+    ansible-galaxy init test-role-1
+
 
         tasks/main.yml - the main list of tasks that the role executes.
         handlers/main.yml - handlers, which may be used within or outside this role.
