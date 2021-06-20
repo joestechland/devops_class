@@ -1,48 +1,49 @@
 ---
-- hosts: all
+- hosts: db
   become: true
   vars_files: vars/main_vars.yml
 
   tasks:
 
-    - name: import yum update.
-      import_tasks: update_yum.yml
+    # - name: import yum update.
+    #   import_tasks: update_yum.yml
 
     
-    # - name: import create user.
-    #   import_tasks: create_user.yml
+    - name: import create user.
+      import_tasks: create_user.yml
 
 # appedn if not exist, replace if it does
 # all following  tasks have access to these env vars
 # use copy of tempaltesif you have a lot of env vars
-    - name: Add an environment variable to the remote user's shell.
-      lineinfile:
-        dest: ~/.bash_profile
-        regexp: '^JAVA_HOME='
-#        line: "JAVA_HOME=/usr/java/jdk_11.0.11"
-        line: "JAVA_HOME={{ java_home }}"
-      tags: user        
+#     - name: Add an environment variable to the remote user's shell.
+#       lineinfile:
+#         dest: ~/.bash_profile
+#         regexp: '^JAVA_HOME='
+# #        line: "JAVA_HOME=/usr/java/jdk_11.0.11"
+#         line: "JAVA_HOME={{ java_home }}"
+#       tags: user        
 
-    - name: Get the value of the environment variable we just added.
-      shell: 'source ~/.bash_profile && echo $JAVA_HOME'
-      register: foo
-    - name: Print the value of the environment variable.
-      debug:
-        msg: "The variable is {{ foo.stdout }}"
-      tags: users        
+#     - name: Get the value of the environment variable we just added.
+#       shell: 'source ~/.bash_profile && echo $JAVA_HOME'
+#       register: foo
+#     - name: Print the value of the environment variable.
+#       debug:
+#         msg: "The variable is {{ foo.stdout }}"
+#       tags: users        
 
 
-    - name: Get list of groups.
-      command: groups
-      register: group_list
-      changed_when: false
-      tags: user      
+#     - name: Get list of groups.
+#       command: groups
+#       register: group_list
+#       changed_when: false
+#       tags: user      
 
-    - name: Print groups.
-      debug:
-        msg: "The groups are: {{ group_list }}"
-      tags: user        
-# use stdout to just get the groups
+#     - name: Print groups.
+#       debug:
+#         msg: "The groups are: {{ group_list }}"
+#       tags: user        
+# # use stdout to just get the groups
+
 
     - name: Install Apache.
       yum:
@@ -51,11 +52,33 @@
           - httpd-devel
         state: absent
       register: apache_stat
+      changed_when: 
 
     - name: print apache stat.
       debug:
         msg: "Apache status: {{ apache_stat.results[0] }}"
 
+    - name: test not installed.
+      debug:
+        msg: "Apache not installed"
+      when: "('httpd is not installed' not in apache_stat.results[0]) and ('Removed' not in apache_stat.results[0])"
+
+        
+    - name: Gather the package facts
+      package_facts:
+      register: pkg_facts
+
+    # - name: Get pkg facts.
+    #   debug:
+    #     var: pkg_facts
+
+    - name: Test if http is present with when.
+      debug: 
+        msg: "HTTPD is Installed"
+      when: "'httpd' in ansible_facts.packages"
+
+ #   - name: start apche and open port.
+ #     block:
     - name: Make sure Apache is started now and at boot.
       service:
         name: httpd
@@ -63,7 +86,11 @@
         enabled: true
       notify:
         - Restart Apache
-      when: apache_stat.results[0] != "httpd is not installed"
+#     ignore_errors: true
+#      when: "'Installed' in apache_stat.results[0] or 'installed' in apache_stat.results[0]" 
+#         - word "installed" appears in both installs and removals so:
+      when: "'not installed' not in apache_stat.results[0] and 'Removed' not in apache_stat.results[0]"
+#     when: "'httpd' in ansible_facts.packages"
 
     - name: Open port 80 for http access
       firewalld:
@@ -72,10 +99,22 @@
         state: enabled
       notify:
         - Restart firewalld
+#      when: "'not installed' not in apache_stat.results[0] and 'Removed' not in apache_stat.results[0]"
 # handlers only fire on change
 # handlers can call other handlers
 # force handlers to fire with meta: flush_handlers
 # --force-handlers at command line - so they run even on fail
+
+
+    - name: Check the current system date.
+      command: date
+      register: date
+ #     changed_when: date.stdout == "foo"
+
+    - name: Print the current system date.
+      debug:
+        var: date.stdout
+
   handlers:
     - name: Restart firewalld
       service:

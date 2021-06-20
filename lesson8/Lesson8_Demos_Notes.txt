@@ -1,4 +1,84 @@
-Start working with OCI 
-1. Setup Control machine for OCI CLI & ansible OCI modules
-2. Begin working with OUIT OCI ocic_scripts
-3. Clone (or at least edit) ed-devops Ansible Scripts repo
+LAst wqeek:
+Import and include
+Create and use Roles
+
+1. Solve last week's class problem: 
+How to prevent "Make sure Apache is started now and at boot." from running if
+apache is not installed?
+
+starter.yml
+2 ways: 
+1. use when to check if output of registered var contains "not installed" or "Removed"
+- if both are true - then httpd is present
+can write with "and" or on spearate lines as part of list
+2. Use package_facts to get list of packages installed
+
+BUT: what if you want this same condition for more than one play? (Make sure apache started AND open port?
+    use Block - all items under/within a block inherit block-level directives (become, when, etc) 
+
+    All tasks in a block inherit directives applied at the block level. 
+    Most of what you can apply to a single task (with the exception of loops) can be applied at the block level,
+    So blocks make it much easier to set data or directives common to the tasks. 
+    The directive does not affect the block itself, it is only inherited by the tasks enclosed by a block. For example, a when statement is applied to the tasks within a block, not to the block itself.
+
+
+Changed_when
+Defining “changed”
+
+Ansible lets you define when a particular task has “changed” a remote node using the changed_when conditional. 
+This lets you determine, based on return codes or output, 
+whether a change should be reported in Ansible statistics and whether a handler should be triggered or not. 
+
+Annoying issue:
+some module and Command and Shell report changes even if nothing actually 
+use changed_when to control Ansible reporting when something actually changes
+ex: create user - shows changed even if user alre4ady exists/is not created
+so: register var and check if it shows " present"  - use changed_when 
+
+or  date command:
+   - name: Check the current system date.
+      command: date
+      register: date
+ #     changed_when: date.stdout == "foo"
+
+    - name: Print the current system date.
+      debug:
+        var: date.stdout
+
+Can use ignore_errors; true 
+if a task fails and that's ok and you want to continue anyway (makes ure that that's ok!) 
+ex: starter.yml Make sure Apache is started now and at boot. - can use ignore_errors: true instead of when
+fail_when if output writes to std_out  or use rc (return code) == 0 
+
+Can also force a fail to occur when a conditon ius (or is not ) met:
+- name: Example using fail and when together
+  fail:
+    msg: The system may not be provisioned according to the CMDB status.
+  when: cmdb_status != "to-be-staged"
+
+Sometimes you have to wait a period of time before continuiing with the next play:
+ex: (re)starting a service or even a server
+ansible.builtin.wait_for – Waits for a condition before continuing
+examples:
+https://docs.ansible.com/ansible/latest/collections/ansible/builtin/wait_for_module.html
+
+Testing with Molecule:
+install: pip install molecule
+mac: brew install molecule
+
+Import taks and use custom vars:
+import_tasks: create.yml
+    vars:
+        crete_group: joe
+        create_user: joe
+
+import_tasks: crerate_user.yml
+    vars:
+        crete_group: ben
+        create_user: ben
+
+Use a role from ansible-galaxy/github:
+https://github.com/tecris/ansible-maven
+
+https://github.com/gantsign/ansible-role-maven
+
