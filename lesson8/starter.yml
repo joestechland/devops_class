@@ -20,7 +20,7 @@
     - name: import create user.
       import_tasks: create_user.yml
       vars: 
-        new_user: ripley
+        new_user: rocketman
         vaulted_password: "{{ new_user }}"
         create_user: "{{ new_user }}"
         create_group: "{{ new_user }}"
@@ -65,7 +65,7 @@
           - httpd-devel
         state: absent
       register: apache_stat
-      changed_when: 
+ #     changed_when: 
 
     - name: print apache stat.
       debug:
@@ -79,40 +79,41 @@
         
     - name: Gather the package facts
       package_facts:
-      register: pkg_facts
+#      register: pkg_facts
 
-    # - name: Get pkg facts.
-    #   debug:
-    #     var: pkg_facts
+    - name: Get pkg facts.
+      debug:
+        var: ansible_facts.packages
 
-    - name: Test if http is present with when.
+    - name: Test if httpd is present with when.
       debug: 
         msg: "HTTPD is Installed"
       when: "'httpd' in ansible_facts.packages"
 
- #   - name: start apche and open port.
- #     block:
-    - name: Make sure Apache is started now and at boot.
-      service:
-        name: httpd
-        state: started
-        enabled: true
-      notify:
-        - Restart Apache
-#     ignore_errors: true
-#      when: "'Installed' in apache_stat.results[0] or 'installed' in apache_stat.results[0]" 
-#         - word "installed" appears in both installs and removals so:
-      when: "'not installed' not in apache_stat.results[0] and 'Removed' not in apache_stat.results[0]"
-#     when: "'httpd' in ansible_facts.packages"
+    # - name: start apche and open port.
+    #   block:
+  #     when: "'not installed' not in apache_stat.results[0] and 'Removed' not in apache_stat.results[0]"
+  #       - name: Make sure Apache is started now and at boot.
+  #         service:
+  #           name: httpd
+  #           state: started
+  #           enabled: true
+  #         notify:
+  #           - Restart Apache
+  #   #      ignore_errors: true
+  #   #      when: "'Installed' in apache_stat.results[0] or 'installed' in apache_stat.results[0]" 
+  #   #         - word "installed" appears in both installs and removals so:
+  # #        when: "'not installed' not in apache_stat.results[0] and 'Removed' not in apache_stat.results[0]"
+  #   #     when: "'httpd' in ansible_facts.packages"
 
-    - name: Open port 80 for http access
-      firewalld:
-        service: http
-        permanent: true
-        state: enabled
-      notify:
-        - Restart firewalld
-#      when: "'not installed' not in apache_stat.results[0] and 'Removed' not in apache_stat.results[0]"
+  #       - name: Open port 80 for http access
+  #         firewalld:
+  #           service: http
+  #           permanent: true
+  #           state: enabled
+  #         notify:
+  #           - Restart firewalld
+  #         when: "'not installed' not in apache_stat.results[0] and 'Removed' not in apache_stat.results[0]"
 # handlers only fire on change
 # handlers can call other handlers
 # force handlers to fire with meta: flush_handlers
@@ -122,14 +123,14 @@
     - name: Check the current system date.
       command: date
       register: date
- #     changed_when: date.stdout == "foo"
+      changed_when: date.stdout == "foo"
 
     - name: Print the current system date.
       debug:
         var: date.stdout
 
-  # roles:
-  #   - role: gantsign.maven
+  roles:
+    - role: gantsign.maven
 
 
   handlers:

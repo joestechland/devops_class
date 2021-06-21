@@ -18,7 +18,7 @@
     state: present
   register: uservar
   tags: user
-#  changed_when: uservar.state !="present"
+  changed_when: uservar.state !="present"
   
 - name: show uservar.
   debug:

@@ -1,3 +1,5 @@
+DO have to run package_facts - but do not have to register separate var - it creates ansible_facts.packages
+
 Start working with OCI 
 Two parts: 
 Provison and purge in OCI
