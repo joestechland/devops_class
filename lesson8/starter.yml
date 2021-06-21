@@ -11,6 +11,19 @@
     
     - name: import create user.
       import_tasks: create_user.yml
+      vars: 
+        new_user: joe
+        vaulted_password: "{{ new_user }}"
+        create_user: "{{ new_user }}"
+        create_group: "{{ new_user }}"
+
+    - name: import create user.
+      import_tasks: create_user.yml
+      vars: 
+        new_user: ripley
+        vaulted_password: "{{ new_user }}"
+        create_user: "{{ new_user }}"
+        create_group: "{{ new_user }}"
 
 # appedn if not exist, replace if it does
 # all following  tasks have access to these env vars

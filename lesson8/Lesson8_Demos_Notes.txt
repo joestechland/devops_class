@@ -1,4 +1,4 @@
-LAst wqeek:
+Last week:
 Import and include
 Create and use Roles
 
@@ -96,10 +96,10 @@ templates/drupal.test.conf.j2:
 when Ansible reaches the play that copies this template into place, 
 the Jinja template will have the variable names replaced with the values /var/www/drupal and drupal (or whatever values you’d like!).
 Ex:
- #  ThepathwhereDrupalwillbedownloadedandinstalled.
+ #  The path where Drupal will be downloaded and installed.
  drupal_core_path:"/var/www/drupal"
 
- #  Theresultingdomainwillbe[domain].test(with.testappended).
+ #  The resulting domain will be[domain].test(with.test appended).
  domain:"drupal"
 
 
@@ -113,7 +113,7 @@ import_tasks: create_user.yml
 
 import_tasks: create_user.yml
     vars:
-        crete_group: ben
+        create_group: ben
         create_user: ben
 
 Use a role from ansible-galaxy/github:
@@ -122,4 +122,14 @@ https://github.com/gantsign/ansible-role-maven
 
 
 Using Roles and vars:
-default vars override  default vars with custom vars
+ex: create_user - defaults to oracle
+but can override within the play
+
+Also, if running script locally on machine it is on then can use connection=local and is much faster and does not need any keys
+connection: local
+
+Next Week:
+  - get started with OUIT scripts: set up env (clone repo, VSC/terminal and extensions)
+  - Analyze one and start to build one need a new env for upcongi java on oci course:
+      - provision new OCI compute (2 cpu, OEL 7)
+      - update yum, new user: oracle, add to sudoer, gkrellm, java jdk 16 + env vars, derby db, jmeter, maven, intellij, docker, minikube, kubectl, jenkins, clone repo for course, labs files
