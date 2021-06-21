@@ -41,7 +41,8 @@ Handlers: starter.yml:
         For static re-use, add an import_* task in the tasks section of a play:
             import_role
             import_tasks
-        Importing roles, tasks, or playbooks adds them to a playbook statically. Ansible pre-processes imported files and roles before it runs any tasks in a playbook, so imported content is never affected by other tasks within the top-level playbook.
+        Importing roles, tasks, or playbooks adds them to a playbook statically. Ansible pre-processes imported files and roles before it runs any tasks in a playbook, 
+        so imported content is never affected by other tasks within the top-level playbook.
         You can pass variables to imports. You must pass variables if you want to run an imported file more than once in a playbook. For example:
         tasks:
         - import_tasks: wordpress.yml

@@ -22,7 +22,7 @@ BUT: what if you want this same condition for more than one play? (Make sure apa
     The directive does not affect the block itself, it is only inherited by the tasks enclosed by a block. For example, a when statement is applied to the tasks within a block, not to the block itself.
 
 
-Changed_when
+2. Changed_when
 Defining “changed”
 
 Ansible lets you define when a particular task has “changed” a remote node using the changed_when conditional. 
@@ -45,40 +45,81 @@ or  date command:
       debug:
         var: date.stdout
 
-Can use ignore_errors; true 
+3. Error Handling
+Can use ignore_errors: true 
 if a task fails and that's ok and you want to continue anyway (makes ure that that's ok!) 
 ex: starter.yml Make sure Apache is started now and at boot. - can use ignore_errors: true instead of when
-fail_when if output writes to std_out  or use rc (return code) == 0 
 
-Can also force a fail to occur when a conditon ius (or is not ) met:
+fail_when if output writes to stderr  or use rc (return code) == 0 
+
+Can also force a fail to occur when a conditon is (or is not ) met:
 - name: Example using fail and when together
   fail:
     msg: The system may not be provisioned according to the CMDB status.
   when: cmdb_status != "to-be-staged"
 
-Sometimes you have to wait a period of time before continuiing with the next play:
+Sometimes you have to wait a period of time before continuing with the next play:
 ex: (re)starting a service or even a server
 ansible.builtin.wait_for – Waits for a condition before continuing
 examples:
 https://docs.ansible.com/ansible/latest/collections/ansible/builtin/wait_for_module.html
 
-Testing with Molecule:
-install: pip install molecule
-mac: brew install molecule
 
-Import taks and use custom vars:
-import_tasks: create.yml
+4. Reuse: Templates
+To create a structured file and fill in vars - possibly different per host or other condition w/out having to generate the file itself
+ex: instructions to students -  a text file and certain values - localhost name, username, password, must be filled in when the file is created. 
+Posibly with values created, discivered or generated at config time
+for simple files, one can use lineinfile module.
+
+Like a mail merge - you can put vars direclty into the template and these will be replaced when the template module play runs: 
+ex:
+  - name: Add Apache virtualhost for Drupal.
+  template:
+    src: "templates/drupal.test.conf.j2"
+    dest: "/etc/apache2/sites-available/{{ domain }}.test.conf"
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart apache
+
+templates/drupal.test.conf.j2:
+  <VirtualHost*:80>
+  ServerAdmin webmaster@localhost 
+  ServerName {{ domain }}.test 
+  ServerAlias www.{{ domain }}.test 
+  DocumentRoot {{ drupal_core_path }}/web 
+  <Directory "{{ drupal_core_path }}/web">
+          Options FollowSymLinks Indexes
+          AllowOverride All
+      </Directory>
+  </VirtualHost>
+when Ansible reaches the play that copies this template into place, 
+the Jinja template will have the variable names replaced with the values /var/www/drupal and drupal (or whatever values you’d like!).
+Ex:
+ #  ThepathwhereDrupalwillbedownloadedandinstalled.
+ drupal_core_path:"/var/www/drupal"
+
+ #  Theresultingdomainwillbe[domain].test(with.testappended).
+ domain:"drupal"
+
+
+
+Import Tasks/Playbooks, Use of Roles
+Import tasks and use custom vars:
+import_tasks: create_user.yml
     vars:
         crete_group: joe
         create_user: joe
 
-import_tasks: crerate_user.yml
+import_tasks: create_user.yml
     vars:
         crete_group: ben
         create_user: ben
 
 Use a role from ansible-galaxy/github:
-https://github.com/tecris/ansible-maven
 
 https://github.com/gantsign/ansible-role-maven
 
+
+Using Roles and vars:
+default vars override  default vars with custom vars

@@ -1,0 +1,43 @@
+- name: Create group.
+  group:
+    name: "{{ create_group }}"
+    state: present
+  register: group_var
+  tags: user
+
+- name: show group var.
+  debug:
+    var: group_var
+
+- name: Create user.
+  user:
+    name: "{{ create_user }}"
+    createhome: true
+    password: "{{ vaulted_password | password_hash('sha512') }}"
+    group: "{{ create_group }}"
+    state: present
+  register: uservar
+  tags: user
+#  changed_when: uservar.state !="present"
+  
+- name: show uservar.
+  debug:
+    var: uservar
+
+- name: Display user name var.
+  debug:
+    var: uservar
+  tags: user        
+
+# - name: Set authorized key from file.
+#   authorized_key:
+#     user: "{{ create_user }}"
+#     state: present
+#     key: "{{ lookup('file', '{{ ssh_home }}/ansible.pub') }}"
+#   tags: user        
+
+# - name: add Oracle to sudoers file.
+#   lineinfile:
+#     path: /etc/sudoers
+#     line: "oracle  ALL=(ALL) NOPASSWD:ALL"
+#   tags: user        
