@@ -29,6 +29,7 @@
       - role: install_course_files
 
       - role: install_gnome
+      # needs vncserver as well for GUI
 #        tags: do
  #    - role: install_course_files (indludes clone repo, set hostname to include dukelabs.org)
 
