@@ -7,6 +7,6 @@
     mode: 0440
 
 - name: install minikube
-  command: install minikube-darwin-amd64 /usr/local/bin/minikube
+  command: install "{{ working_dir }}/minikube-darwin-amd64" /usr/local/bin/minikube
   register: m_var
   changed_when: m_var.rc !=0
