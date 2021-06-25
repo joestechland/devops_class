@@ -1,0 +1,35 @@
+---
+  - hosts: oci_javaoci_oel8
+    become: true
+#      - update yum, new user: oracle, add to sudoer, git, curl, python3, python-pip3, java jdk 11 + env vars, derby db, jmeter, intellij,
+#      - maven, docker, minikube, kubectl, jenkins, clone repo for course, labs files
+    tasks:
+      # - name: print debug info.
+      #   debug:
+      #     var: ansible_facts
+      #   tags: do
+
+    roles:
+      - role: update_distro
+  
+      - role: create_admin_user
+
+      - role: add_linux_support
+
+      - role: create_java_development
+
+      - role: gantsign.maven
+
+      - role: install_docker
+
+      - role: install_minikube
+
+      - role: install_jenkins
+
+      - role: install_course_files
+
+      - role: install_gnome
+#        tags: do
+ #    - role: install_course_files (indludes clone repo, set hostname to include dukelabs.org)
+
+

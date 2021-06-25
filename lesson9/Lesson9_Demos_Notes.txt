@@ -1,9 +1,14 @@
-DO have to run package_facts - but do not have to register separate var - it creates ansible_facts.packages
+Last week:
+when, changed_when, ignore errors, templates, use roles
+Class Q: You DO have to run package_facts - but do not have to register separate var - it creates ansible_facts.packages
+
 
 Start working with OCI 
 Two parts: 
 Provison and purge in OCI
 Run script to configure compute image for course
+Look at main and roles for javaOCI course
+
 
 We'll look at part 2 first.
 1. Clone Ansible_Playbook repo locally
@@ -19,3 +24,4 @@ We'll look at part 2 first.
 3. Clone (or at least edit) ed-devops Ansible Scripts repo
 
 Provision and Configure a new OUIT OCI Env - Build and purge from scratch
+https://superuser.com/questions/1255634/install-ansible-in-windows-using-git-bash

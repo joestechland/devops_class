@@ -1,4 +1,4 @@
-user: vagrant
+user: opc
 new_user: oracle
 vaulted_password: "{{ new_user }}"
 create_user: "{{ new_user }}"
