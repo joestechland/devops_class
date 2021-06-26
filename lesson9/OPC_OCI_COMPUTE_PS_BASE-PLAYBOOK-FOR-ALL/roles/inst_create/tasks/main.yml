@@ -1,0 +1,10 @@
+---
+- name: Get compartment id.
+  oci_compartment_facts:
+      compartment_id: '{{ tenancy_id }}'
+      name: "{{ compartment_name }}"
+  register: return_object
+
+- include: compute_create.yml compartment_id={{return_object.compartments[0].id}}
+- include: create_readme.yml
+

@@ -1,0 +1,32 @@
+---
+  - name: "Java instance with ATP database"
+    hosts: 127.0.0.1
+
+    environment:
+      HTTPS_PROXY: "http://ges-proxy.oracle.com:80"
+      HTTP_PROXY: "http://ges-proxy.oracle.com:80"
+      OCI_TENANCY: "<Tenancy_OCID>"
+      OCI_USER_FINGERPRINT: "9a:ef:fb:dc:31:9e:76:d9:66:0f:dc:c6:fc:57:98:05"
+      OCI_USER_ID: "<User_OCID>"
+      OCI_USER_KEY_FILE: "/home/oracle/.oci/oci_api_key.pem"
+      PYTHONPATH: "/git_lab/git_lab_prod/projects/ansible_modules/OCIC"
+
+    vars:
+      admin_account_password: "<password>"
+      admin_account_username: "<username>"
+      bucket_name: "Bucket{{ compartment_name | regex_replace('-', '') }}"
+      course_title: "Java Cloud Fundamentals Ed 1"
+      domain_id: "<domain_name>"
+      event_id: "<event_id>"
+      idcs_name: "<IDCS_domain>"
+      java_name: "JCS{{student_user | regex_replace('-', '')}}"
+      db_name: "ATD{{ compartment_name | regex_replace('-', '') }}"
+      oci_region: "us-ashburn-1"
+      oci_step: "true"
+      psm_endpoint: "<psm>"
+      student_user: "<student_user>"
+      tenancy_id: "<Tenancy_OCID>"
+
+    roles:
+      - remove_java_instance
+

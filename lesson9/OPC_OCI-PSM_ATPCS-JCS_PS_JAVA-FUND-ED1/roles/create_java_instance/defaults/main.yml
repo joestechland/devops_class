@@ -1,0 +1,17 @@
+---
+admin_console: True
+admin_password: "Welcome_1"
+admin_user: "weblogic"
+app_deploy: True
+db_type: "ATP"
+dba_name: "ADMIN"
+display_name: "ATD{{ compartment_name }}"
+license_model: "LICENSE_INCLUDED"
+load_balancing_option: "OTD"
+load_balancing_policy: "LEAST_CONNECTION_COUNT"
+plan_name: "JCS_ATD"
+provision:
+  - "policy.j2"
+  - "README.j2"
+readme_file_name: "README_{{ oci_student_user }}"
+ssh_key_file: "/home/oracle/.ssh/publicKey"

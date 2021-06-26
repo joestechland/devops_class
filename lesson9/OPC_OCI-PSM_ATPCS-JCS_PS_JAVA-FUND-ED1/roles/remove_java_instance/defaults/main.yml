@@ -1,0 +1,3 @@
+---
+display_name: "ATD{{ compartment_name }}"
+plan_name: "JCS_ATD"

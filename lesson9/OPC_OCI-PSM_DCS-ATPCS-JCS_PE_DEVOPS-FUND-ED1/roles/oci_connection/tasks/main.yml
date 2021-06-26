@@ -1,0 +1,21 @@
+---
+
+  - name: Kill all firefox process
+    shell: pkill -f /opt/firefox59/firefox-bin
+    args:
+      chdir: /home/opc
+    ignore_errors: yes
+
+
+  - name: Kill all geckodriver process
+    shell: pkill -f /usr/bin/geckodriver
+    args:
+      chdir: /home/opc
+    ignore_errors: yes
+
+
+  - name: Create OCI connection through selenium script
+    shell: 'MOZ_HEADLESS=1 python3 dev_selenium.py {{hostvars["127.0.0.1"]["dev_url"] |regex_replace(":443", "")}}  {{tenancy_id}} {{ user_ocid }} {{hostvars["127.0.0.1"]["dev_comp_id"]}} {{ domain_id }} {{admin_account_username}} "{{admin_account_password}}"'
+    args:
+      chdir: /home/opc
+

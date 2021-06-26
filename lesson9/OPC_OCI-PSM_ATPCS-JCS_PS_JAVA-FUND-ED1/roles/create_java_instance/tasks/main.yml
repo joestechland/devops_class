@@ -1,0 +1,194 @@
+---
+  - name: 'Set OCI user name'
+    set_fact:
+      oci_student_user: '{{ student_user | regex_replace("ora0", "lab.user") }}'
+
+  - name: 'Get users list'
+    oci_user_facts:
+    register: oci_user_list
+
+  - name: 'Get the user id'
+    set_fact:
+      user_id: '{{ item.id }}'
+    with_items: '{{ oci_user_list.users }}'
+    loop_control:
+      label: "{{ item.id }}"
+    when: oci_student_user == item.name
+
+  - name: 'Set compartment name'
+    set_fact:
+      compartment_name: '{{ oci_student_user | regex_replace("lab.user", "C") }}'
+
+  - name: 'Get compartment info'
+    oci_compartment_facts:
+      compartment_id: '{{ tenancy_id }}'
+      name: '{{ compartment_name }}'
+    register: compartment_dict
+
+  - name: 'Set compartment id'
+    set_fact:
+      compartment_id: '{{ compartment_dict.compartments[0].id }}'
+
+  - name: 'Gets auth token ID if present'
+    oci_auth_token_facts:
+      user_id: '{{ user_id }}'
+    register: token_list
+
+  - name: 'Removes all the previous auth tokens'
+    oci_auth_token:
+      user_id: '{{ user_id }}'
+      id: '{{ item.id }}'
+      state: absent
+    with_items: '{{ token_list.auth_tokens }}'
+    loop_control:
+      label: "{{ item.description }}"
+    when: item.description == "Auth token for {{ plan_name }}"
+
+  - name: 'Creates an auth token'
+    oci_auth_token:
+      user_id: '{{ user_id }}'
+      description: "Auth token for {{ plan_name }}"
+    register: auth_token
+
+  - name: 'Setting the value for token variable'
+    set_fact:
+      token: '{{ auth_token.auth_token.token }}'
+
+  - name: 'Get the Availability domain facts'
+    oci_ad_facts:
+      compartment_id: '{{ compartment_id }}'
+      region: '{{ oci_region }}'
+    register: ad_list
+
+  - name: 'Setting the subnet_dict'
+    set_fact:
+      subnet_dict: '{{ subnet_dict | default({}) | combine({ "10.0." + item.name.split("-")[3] + ".0/24": item.name }) }}'
+    with_items: '{{ ad_list.availability_domains }}'
+    loop_control:
+      label: "{{ item.name }}"
+
+  - name: 'Checking the VCN present in the domain'
+    oci_vcn_facts:
+      compartment_id: '{{ compartment_id }}'
+      display_name: "vcn{{ compartment_name }}"
+      region: '{{ oci_region }}'
+    register: vcn_dict2
+
+  - name: 'Create VCN for a user'
+    oci_vcn:
+      compartment_id: '{{ compartment_id }}'
+      cidr_block: '10.0.0.0/16'
+      dns_label: 'vcnlabuser'
+      name: "vcn{{ compartment_name }}"
+      region: '{{ oci_region }}'
+      state: present
+    when: vcn_dict2.vcns.0 is not defined
+
+  - name: 'Get VCN ID'
+    oci_vcn_facts:
+      compartment_id: '{{ compartment_id }}'
+      display_name: "vcn{{ compartment_name }}"
+      region: '{{ oci_region }}'
+    register: vcn_dict
+
+  - name: 'Create subnets in the VCN'
+    oci_subnet:
+      availability_domain: "{{ item.value }}"
+      cidr_block: '{{ item.key }}'
+      compartment_id: "{{ compartment_id }}"
+      dns_label: 'subnet{{ item.value.split("-")[3] }}'
+      region: '{{ oci_region }}'
+      vcn_id: '{{ vcn_dict.vcns[0].id }}'
+    with_dict: '{{ subnet_dict }}'
+    loop_control:
+      label: "{{ item.key }}"
+    register: subnet_list
+    when: vcn_dict2.vcns.0 is not defined
+
+  - name: 'Setting availability_domain'
+    set_fact:
+      availability_domain: '{{ subnet_dict["10.0.1.0/24"] }}'
+
+
+  - name: 'Getting Autonomous Transaction Processing databases'
+    oci_autonomous_database_facts:
+      compartment_id: '{{ compartment_id }}'
+      display_name: '{{ display_name }}'
+      region: '{{ oci_region }}'
+    register: atd_dict
+
+
+  - name: 'Removing the Autonomous Database if in UNAVAILABLE state'
+    oci_autonomous_database:
+      autonomous_database_id: '{{ atd_dict.autonomous_databases[0].id }}'
+      compartment_id: '{{ compartment_id }}'
+      region: '{{ oci_region }}'
+      state: absent
+      wait: True
+      wait_until: 'TERMINATED'
+    when: atd_dict.autonomous_databases != [] and atd_dict.autonomous_databases[0].lifecycle_state == 'UNAVAILABLE'
+
+
+  - name: 'Creating the Autonomous Transaction Processing Database'
+    oci_autonomous_database:
+      admin_password: '{{ db_password }}'
+      compartment_id: '{{ compartment_id }}'
+      cpu_core_count: '{{ cpu_core_count }}'
+      db_name: '{{ db_name }}'
+      data_storage_size_in_tbs: '{{ db_size }}'
+      db_workload: 'OLTP'
+      display_name: '{{ display_name }}'
+      license_model: '{{ license_model }}'
+      region: '{{ oci_region }}'
+      state: present
+      wait: True
+      wait_until: 'AVAILABLE'
+    when: (atd_dict.autonomous_databases != [] and atd_dict.autonomous_databases[0].lifecycle_state != 'AVAILABLE') or atd_dict.autonomous_databases == []
+
+
+  - name: 'Creating Object Storage Bucket'
+    oci_bucket:
+      compartment_id: '{{ compartment_id }}'
+      name: '{{ bucket_name }}'
+      namespace_name: '{{ domain_id }}'
+      region: '{{ oci_region }}'
+      state: present
+
+  - name: 'Creating the Java Cloud Service instance'
+    jaas:
+      admin_console: '{{ admin_console }}'
+      admin_password: '{{ admin_password }}'
+      admin_user: '{{ admin_user }}'
+      app_deploy: '{{ app_deploy }}'
+      availability_domain: '{{ availability_domain }}'
+      backup: '{{ backup }}'
+      db_name: '{{ db_name }}'
+      db_type: '{{ db_type }}'
+      dba_name: '{{ dba_name }}'
+      dba_password: '{{ dba_password }}'
+      endpoint: '{{ psm_endpoint }}'
+      identity: '{{ idcs_name }}'
+      name: '{{ java_name }}'
+      load_balancing_option: '{{ load_balancing_option }}'
+      load_balancing_policy: '{{ load_balancing_policy }}'
+      oci_user: '{{ oci_student_user }}'
+      password: '{{ admin_account_password }}'
+      region: '{{ oci_region }}'
+      shape: '{{ shape }}'
+      sshkey_file: '{{ ssh_key_file }}'
+      state: present
+      storage_endpoint: 'swiftobjectstorage.{{ oci_region }}.oraclecloud.com/v1/{{ domain_id }}'
+      storage_container_name: '{{ bucket_name }}'
+      token: '{{ token }}'
+      user: '{{ admin_account_username }}'
+      version: '{{ version }}'
+      wait: true
+
+  - name: 'Creating a README file'
+    template:
+      src: 'README.j2'
+      dest: '{{ log_path }}/{{ readme_file_name }}'
+
+  - name: 'Concatenating the README file'
+    shell: 'cat {{ log_path }}/{{ readme_file_name }} >> {{ log_path }}/README'
+

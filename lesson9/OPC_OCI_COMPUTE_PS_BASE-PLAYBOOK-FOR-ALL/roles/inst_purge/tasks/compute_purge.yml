@@ -1,0 +1,31 @@
+---
+
+
+  - debug:
+     msg: '{{ compartment_id }}'
+
+
+  - name: Get details of all the compute instances of a specified compartment in a specified Availability Domain
+    oci_instance_facts:
+      compartment_id: '{{ compartment_id }}'
+      availability_domain: "{{ oci_availability_domain }}"
+      region: '{{ oci_region }}'
+    register: instance_list
+
+
+  - name: Get instance id
+    set_fact:
+      instance_id: '{{ item.id }}'
+    with_items: '{{ instance_list.instances }}'
+    when: "item.display_name == '{{ instance_name }}'"
+
+
+  - name: Delete the compute instance
+    oci_instance:
+      state: absent
+      id: '{{ instance_id }}'
+      region: '{{ oci_region }}'
+      wait: True
+    when: instance_id is defined
+
+

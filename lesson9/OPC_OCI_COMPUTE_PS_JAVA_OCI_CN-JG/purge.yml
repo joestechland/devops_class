@@ -1,0 +1,29 @@
+# /git_lab/git_lab_prod/projects/git_env/bin/ansible-playbook purge.yml -vvvv
+---
+  - name: Delete OCI Compute Instance
+    hosts: 127.0.0.1
+    environment:
+      PYTHONPATH: '/git_lab/git_lab_prod/projects/ansible_modules/OCIC'
+      OCI_USER_KEY_FILE: '/home/oracle/.oci/oci_api_key.pem'
+      OCI_USER_FINGERPRINT: '9a:ef:fb:dc:31:9e:76:d9:66:0f:dc:c6:fc:57:98:05'
+      OCI_TENANCY: 'ocid1.tenancy.oc1..aaaaaaaaku2h6rz36p2xqbh2lugpa7cuunc74uzi6bu7keead226yfakmbfa'
+      OCI_USER_ID: 'ocid1.user.oc1..aaaaaaaaps5lmmwx62a4xuymrfkqmrnby6sraythubzjdzwttnl7ykqzp4ka'
+      HTTP_PROXY: 'http://ges-proxy.oracle.com:80'
+      HTTPS_PROXY: 'http://ges-proxy.oracle.com:80'
+    vars:
+      course_title: '<gcc_name>'
+      tenancy_id: 'ocid1.tenancy.oc1..aaaaaaaaku2h6rz36p2xqbh2lugpa7cuunc74uzi6bu7keead226yfakmbfa'
+      log_path: '/tmp/20210517'
+      oci_region: 'us-ashburn-1'
+      oci_availability_domain: 'CPQY:US-ASHBURN-AD-1'
+      compartment_name: '<compartment_name>'
+      event_id: '20210517'
+      student_user: 'ora001'
+      oci_step: 'true'
+      compute_instance_name_prefix: '<compute_instance_name_prefix>'
+      instance_name: "{{compute_instance_name_prefix}}{{student_user | regex_replace('-', '')}}"
+
+    roles :
+      - inst_purge
+      - check_proxy
+

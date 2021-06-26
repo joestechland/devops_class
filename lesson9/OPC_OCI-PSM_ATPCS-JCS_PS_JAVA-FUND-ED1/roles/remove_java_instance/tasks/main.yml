@@ -1,0 +1,134 @@
+---
+  - name: 'Set OCI user name'
+    set_fact:
+      oci_student_user: '{{ student_user | regex_replace("ora0", "lab.user") }}'
+
+  - name: 'Get users list'
+    oci_user_facts:
+    register: oci_user_list
+
+  - name: 'Get the user id'
+    set_fact:
+      user_id: '{{ item.id }}'
+    with_items: '{{ oci_user_list.users }}'
+    loop_control:
+      label: "{{ item.id }}"
+    when: oci_student_user == item.name
+
+  - name: 'Set compartment name'
+    set_fact:
+      compartment_name: '{{ oci_student_user | regex_replace("lab.user", "C") }}'
+
+  - name: 'Get compartment info'
+    oci_compartment_facts:
+      compartment_id: '{{ tenancy_id }}'
+      name: '{{ compartment_name }}'
+    register: compartment_dict
+
+  - name: 'Set compartment id'
+    set_fact:
+      compartment_id: '{{ compartment_dict.compartments[0].id }}'
+
+  - name: 'Get all the policies attached to a compartment or tenancy'
+    oci_policy_facts:
+        compartment_id: '{{ compartment_id }}'
+    register: oci_policies
+
+  - name: 'Get the policy ID'
+    set_fact:
+      oci_policy_id: '{{ item.id }}'
+    with_items: '{{ oci_policies.policies }}'
+    loop_control:
+      label: '{{ item.name }}'
+    when: item.name == 'policy-PSM-{{ compartment_name }}'
+
+  - name: 'Delete previous policy if exists'
+    oci_policy:
+      id: '{{ oci_policy_id }}'
+      state: absent
+    when: oci_policy_id is defined
+
+  - name: 'Gets auth token ID if present'
+    oci_auth_token_facts:
+      user_id: '{{ user_id }}'
+    register: token_list
+
+  - name: 'Removes all the previous auth tokens'
+    oci_auth_token:
+      user_id: '{{ user_id }}'
+      id: '{{ item.id }}'
+      state: absent
+    with_items: '{{ token_list.auth_tokens }}'
+    loop_control:
+      label: "{{ item.description }}"
+    when: item.description == "Auth token for {{ plan_name }}"
+
+  - name: 'Get VCN ID'
+    oci_vcn_facts:
+      compartment_id: '{{ compartment_id }}'
+      display_name: "vcn{{ compartment_name }}"
+      region: '{{ oci_region }}'
+    register: vcn_dict
+
+  - name: 'Getting subnet details'
+    oci_subnet_facts:
+      compartment_id: '{{ compartment_id }}'
+      region: '{{ oci_region }}'
+      vcn_id: '{{ vcn_dict.vcns[0].id }}'
+    register: subnet_dict
+    when: vcn_dict.vcns | length > 0
+
+  - name: 'Delete associated subnets'
+    oci_subnet:
+      subnet_id: '{{ item.id }}'
+      region: '{{ oci_region }}'
+      state: absent
+    with_items: '{{ subnet_dict.subnets }}'
+    loop_control:
+      label: "{{ item.display_name }}"
+    when: subnet_dict.subnets is defined
+
+  - name: 'Delete the VCN'
+    oci_vcn:
+      region: '{{ oci_region }}'
+      id: '{{ vcn_dict.vcns[0].id }}'
+      state: absent
+      wait_until: 'TERMINATED'
+    when: vcn_dict.vcns.0 is defined
+
+  - name: 'Getting Autonomous Transaction Processing databases'
+    oci_autonomous_database_facts:
+      compartment_id: '{{ compartment_id }}'
+      display_name: '{{ display_name }}'
+      region: '{{ oci_region }}'
+    register: atd_dict
+
+  - name: 'Removing the Autonomous Transaction Processing Database'
+    oci_autonomous_database:
+      autonomous_database_id: '{{ atd_dict.autonomous_databases[0].id }}'
+      compartment_id: '{{ compartment_id }}'
+      region: '{{ oci_region }}'
+      state: absent
+      wait: True
+      wait_until: 'TERMINATED'
+    when: atd_dict.autonomous_databases != []
+
+  - name: 'Removing Object Storage Bucket'
+    oci_bucket:
+      compartment_id: '{{ compartment_id }}'
+      force: yes
+      name: '{{ bucket_name }}'
+      namespace_name: '{{ domain_id }}'
+      region: '{{ oci_region }}'
+      state: absent
+
+  - name: 'Removing the Java Cloud Service instance'
+    jaas:
+      endpoint: '{{ psm_endpoint }}'
+      identity: '{{ idcs_name }}'
+      name: '{{ java_name }}'
+      password: '{{ admin_account_password }}'
+      state: absent
+      user: '{{ admin_account_username }}'
+      wait: true
+

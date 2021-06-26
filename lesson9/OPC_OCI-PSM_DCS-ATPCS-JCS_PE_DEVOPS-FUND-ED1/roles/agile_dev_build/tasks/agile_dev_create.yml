@@ -1,0 +1,160 @@
+---
+
+  - name: Create Developer Cloud Instance
+    adcs:
+        state: present
+        name: '{{ devcs_name }}{{event_id}}'
+        identity: '{{ idcs_name }}'
+        user: '{{ admin_account_username }}'
+        password: '{{ admin_account_password }}'
+        ocic_region: '{{ oci_region }}'
+        wait: True
+        proxies:
+          http: 'http://ges-proxy.oracle.com:80'
+          https: 'http://ges-proxy.oracle.com:80'
+
+
+  - name: Get Developer cloud instance details
+    adcs:
+        state: info
+        name: '{{ devcs_name }}{{event_id}}'
+        identity: '{{ idcs_name }}'
+        user: '{{ admin_account_username }}'
+        password: '{{ admin_account_password }}'
+        proxies:
+          http: 'http://ges-proxy.oracle.com:80'
+          https: 'http://ges-proxy.oracle.com:80'
+    register: adcs_json
+
+
+
+  - name: Get the Developer Cloud URL 
+    debug:
+        msg: '{{ adcs_json.output.serviceAccessUrl }}'
+
+
+  - name: Set the Developer Cloud URL
+    set_fact:
+        dev_url: '{{ adcs_json.output.serviceAccessUrl }}'
+
+
+
+
+  - name: Add the Student Users to the Approle
+    idcs_grants_manager:
+        state: 'present'
+        identity: "{{idcs_name}}"
+        client_id: "{{ client_id }}"
+        client_secret: "{{ client_secret }}"
+        app_name: "DevServiceAppAUTO_{{ devcs_name}}{{event_id}}"
+        approle_list: "{{ role_list }}"
+        username: "{{ student_user }}"
+        proxies:
+          http: 'http://ges-proxy.oracle.com:80'
+          https: 'http://ges-proxy.oracle.com:80'
+    register: approle_json
+
+
+  - name: Get the OCID of Autonomous Transaction instance
+    oci_autonomous_database_facts:
+        compartment_id: '{{ dev_comp_id }}'
+        display_name: '{{ dbcs_name}}{{ event_id }}'
+    register: atd_dict
+ 
+
+  - name: 'Removing the Autonomous Database if in UNAVAILABLE state'
+    oci_autonomous_database:
+      autonomous_database_id: '{{ atd_dict.autonomous_databases[0].id }}'
+      compartment_id: '{{ dev_comp_id }}'
+      region: '{{ oci_region }}'
+      state: absent
+      wait: True
+      wait_until: 'TERMINATED'
+    when: atd_dict.autonomous_databases != [] and atd_dict.autonomous_databases[0].lifecycle_state == 'UNAVAILABLE'
+
+
+  - name: Create an Autonomous Transaction Processing Instance
+    oci_autonomous_database:
+        compartment_id: '{{ dev_comp_id }}'
+        admin_password: '{{db_password}}'
+        data_storage_size_in_tbs: 1
+        cpu_core_count: 1 
+        db_name: '{{dbcs_name}}{{ event_id }}'
+        db_workload: 'OLTP'
+        display_name: '{{dbcs_name}}{{ event_id}}'
+        license_model: 'LICENSE_INCLUDED'
+        region: '{{ oci_region }}'
+        wait: True
+        state: 'present'
+        wait_until: 'AVAILABLE'
+    when: (atd_dict.autonomous_databases != [] and atd_dict.autonomous_databases[0].lifecycle_state != 'AVAILABLE') or atd_dict.autonomous_databases == []
+
+
+  - name: Get the Availability domain facts
+    oci_ad_facts:
+      compartment_id: '{{ dev_comp_id }}'
+      region: '{{ oci_region }}'
+    register: ad_list
+
+
+  - name: Setting the subnet_dict
+    set_fact:
+      subnet_dict: '{{ subnet_dict | default({}) | combine({ "10.0." + item.name.split("-")[3] + ".0/24": item.name }) }}'
+    with_items: '{{ ad_list.availability_domains}}'
+
+
+
+
+  - name: Create an JCS instance
+    jaas:
+        state: present
+        name: "{{ jcs_name}}{{ event_id}}"
+        db_name: "{{ dbcs_name}}{{ event_id }}"
+        db_type: 'ATP'
+        availability_domain: "{{ subnet_dict['10.0.1.0/24'] }}"
+        identity: "{{idcs_name}}"
+        user: "{{admin_account_username}}"
+        password: "{{admin_account_password}}"
+        description: "Ansible JCS instance for Agile Dev Domain"
+        endpoint: "{{jcs_endpoint}}"
+        backup: 'NONE'
+        sshkey_file: "/home/oracle/.ssh/publicKey"
+        dba_name: 'ADMIN'
+        dba_password: '{{ db_password }}'
+        region: '{{ oci_region }}'
+        version: '12cRelease213'
+        shape: 'VM.Standard2.1'
+        domain: "{{domain_id}}"
+        admin_user: "{{admin_wls_user}}"
+        admin_password: "{{admin_wls_password}}"
+        wait: True
+        proxies:
+          http: 'http://ges-proxy.oracle.com:80'
+          https: 'http://ges-proxy.oracle.com:80'
+
+
+  - name: Get the WLS IP Address
+    jaas:
+        state: info
+        name: "{{ jcs_name}}{{ event_id }}"
+        identity: "{{idcs_name}}"
+        user: "{{admin_account_username}}"
+        password: "{{admin_account_password}}"
+        description: "Get the WLS IP Address for App Dev Domain"
+        endpoint: "{{jcs_endpoint}}"
+        proxies:
+          http: 'http://ges-proxy.oracle.com:80'
+          https: 'http://ges-proxy.oracle.com:80'
+    register: wls_json
+
+
+  - name: Display the WLS Admin URL
+    debug:
+       msg: " The WLS Login URL is {{ wls_json.output.WLS_ROOT }}"
+
+
+  - name: Creating a README file
+    template:
+      src: README.j2
+      dest: "{{ log_path }}/README"
+

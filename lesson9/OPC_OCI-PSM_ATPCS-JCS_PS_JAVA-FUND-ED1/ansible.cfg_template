@@ -1,0 +1,10 @@
+[defaults]
+host_key_checking   = False
+library             = /git_lab/git_lab_prod/projects/ansible_modules/OCIC
+log_path            = <log_path>/ansible.log
+retry_files_enabled = False
+stdout_callback     = skippy
+
+[ssh_connection]
+command_warnings    = False
+retries             = 3

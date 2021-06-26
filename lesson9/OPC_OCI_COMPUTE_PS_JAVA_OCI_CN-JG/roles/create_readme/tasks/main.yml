@@ -1,0 +1,5 @@
+---
+
+  - name: Concatenating the README file
+    shell: "cat {{ log_path }}/README_{{student_user}} >> {{ log_path }}/README"
+

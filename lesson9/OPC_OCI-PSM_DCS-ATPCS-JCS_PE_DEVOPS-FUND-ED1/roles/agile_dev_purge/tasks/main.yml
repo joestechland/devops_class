@@ -1,0 +1,31 @@
+---
+
+  - name: Get full compartment list
+    oci_compartment_facts:
+        compartment_id: '{{tenancy_id}}'
+    register: return_object2
+
+  - name: Set the compartment name when oci_user is not defined
+    set_fact:
+        dev_compartment_name: '{{ event_id }}-C01'
+    when: 'oci_user == "<oci_user>"'
+
+
+  - name: Set the compartment name when oci_user is defined
+    set_fact:
+        dev_compartment_name: '{{ oci_user | regex_replace("lab.user", "C") }}'
+    when: 'oci_user != "<oci_user>"'
+
+
+
+
+  - name: Get Dev compartment ID
+    set_fact:
+      dev_comp_id: '{{ item.id }}'
+    with_items: '{{return_object2.compartments}}'
+    when: "'{{ dev_compartment_name }}' in item.name"
+
+
+  - include: agile_dev_delete.yml compartment_id={{ dev_comp_id }}
+
+

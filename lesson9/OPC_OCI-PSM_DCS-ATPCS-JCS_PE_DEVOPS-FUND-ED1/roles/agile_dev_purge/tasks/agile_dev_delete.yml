@@ -1,0 +1,50 @@
+---
+
+  - name: Delete JCS instance
+    jaas:
+        state: absent
+        name: "{{ jcs_name}}{{ event_id }}"
+        identity: "{{idcs_name}}"
+        user: "{{admin_account_username}}"
+        password: "{{admin_account_password}}"
+        endpoint: "{{jcs_endpoint}}"
+        domain: "{{domain_id}}"
+        proxies:
+          http: 'http://ges-proxy.oracle.com:80'
+          https: 'http://ges-proxy.oracle.com:80'
+        wait: True
+
+
+  - name: Get the OCID of Autonomous Transaction instance
+    oci_autonomous_database_facts:
+        compartment_id: '{{ compartment_id }}'
+        display_name: '{{ dbcs_name}}{{ event_id }}'
+    register: atp_list
+
+
+  - name: set the autonomoud id
+    set_fact:
+        autonomous_id: '{{ item.id }}'
+    with_items: '{{ atp_list.autonomous_databases }}' 
+
+
+  - name: Delete the Autonomous transaction processing
+    oci_autonomous_database:
+        state: absent
+        autonomous_database_id: '{{autonomous_id}}'
+        wait: True
+    when: autonomous_id is defined
+
+
+  - name: Delete the Autonomous Developer Cloud
+    adcs:
+        state: absent
+        name: '{{ devcs_name }}{{event_id}}'
+        identity: '{{ idcs_name }}'
+        user: '{{ admin_account_username }}'
+        password: '{{ admin_account_password }}'
+        wait: True
+        proxies:
+          http: 'http://ges-proxy.oracle.com:80'
+          https: 'http://ges-proxy.oracle.com:80'
+

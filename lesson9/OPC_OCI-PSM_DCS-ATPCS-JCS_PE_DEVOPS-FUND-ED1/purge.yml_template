@@ -1,0 +1,35 @@
+# /git_lab/git_lab_prod/projects/git_env/bin/ansible-playbook purge.yml -vvvv
+---
+
+  - name: Delete an DevOps Fund Environment
+    hosts: 127.0.0.1
+    environment:
+      PYTHONPATH: '/git_lab/git_lab_prod/projects/ansible_modules/OCIC'
+      OCI_TENANCY: '<Tenancy_OCID>'
+      OCI_USER_KEY_FILE: '/home/oracle/.oci/oci_api_key.pem'
+      OCI_USER_FINGERPRINT: '9a:ef:fb:dc:31:9e:76:d9:66:0f:dc:c6:fc:57:98:05'
+      OCI_USER_ID: '<User_OCID>'
+      HTTP_PROXY: 'http://ges-proxy.oracle.com:80'
+      HTTPS_PROXY: 'http://ges-proxy.oracle.com:80'
+    vars:
+      course_title: '<gcc_name>'
+      tenancy_id: '<Tenancy_OCID>'
+      idcs_name: '<IDCS_domain>'
+      admin_account_username: '<username>'
+      admin_account_password: '<password>'
+      jcs_endpoint: '<jcs>'
+      devcs_name: 'AutoDevCS'
+      dbcs_name: 'Devdb'
+      jcs_name: 'DevCsJCS'
+      domain_id: '<domain_name>'
+      event_id: '<event_id>'
+      log_path: '<log_path>'
+      oci_region: 'us-ashburn-1'
+      student_user: '<student_user>'
+      oci_user: '<oci_user>'
+      oci_step: 'true'
+
+
+    roles :
+      - agile_dev_purge
+

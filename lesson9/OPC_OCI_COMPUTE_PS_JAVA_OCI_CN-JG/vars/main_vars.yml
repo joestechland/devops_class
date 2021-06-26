@@ -1,0 +1,29 @@
+---
+# echo "Usage ./update_templates.sh \$event_id \$domain_name \$username \$password \$PLAYBOOK_NAME"
+# echo "        EXAMPLE ... e.g. ./update_templates.sh 20200602 ocuocictrng14 gitousupport 'Cloud8Du0lc9' SQL-FUND"
+
+course_title: "S1101182GC10"
+tenancy_id: 'ocid1.tenancy.oc1..aaaaaaaaku2h6rz36p2xqbh2lugpa7cuunc74uzi6bu7keead226yfakmbfa'
+log_path: '/tmp/1101182'
+oci_region: 'us-ashburn-1'
+oci_availability_domain: 'CPQY:US-ASHBURN-AD-1'
+compartment_name: 'OPC_COMPUTE'
+event_id: '1101182'
+student_user: 'ora001'
+oci_step: 'true'
+compute_instance_name_prefix: 'javaoci-oel8'
+instance_name: "{{compute_instance_name_prefix}}{{student_user | regex_replace('-', '')}}"
+instance_shape: 'VM.Standard2.2'
+image_display_name: 'Oracle-Linux-8.4-2021.06.20-0'
+publicKey: 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDpTJ4j3vfhfJIyY3hAtC9YP6jZZNapcyBfMtmSYZkfVSUPXF2Nq9ALw0WE/SP5gH4SZhJrZ2egvwxLSiMx4aSCZRXahshVXj+EV/J8LFfAk2wV8S/C3UdGEJGD/hN9qJg/98Z6kNcLgcbrQ69bdVFeIMKaUAH4fuBsU9vjAUuXVrtJXxGdNEsrNAUWclRY+j2NIygAlKqvLJ3glA5pP/EZj+rdEwcUvZIzFD6dDBy3XzSeAuOqcf4wedmgFg/3gCQ5lmCsI6RQb1G2+Q/UInjW/cp/vD3rWyAevBPjb/fqEyB8AZN+DX8yt4bO4jpMafL/s4OAOc0tGQupBHgUAfeN joe@JoesMBP-48.local'
+VCN_display_name: 'vcn-20210421-1300'
+Subnet_display_name: 'subnet-20210421-1300'
+
+environment:
+  PYTHONPATH: '/git_lab/git_lab_prod/projects/ansible_modules/OCIC'
+  OCI_USER_KEY_FILE: '/home/oracle/.oci/oci_api_key.pem'
+  OCI_USER_FINGERPRINT: '9a:ef:fb:dc:31:9e:76:d9:66:0f:dc:c6:fc:57:98:05'
+  OCI_TENANCY: 'ocid1.tenancy.oc1..aaaaaaaaku2h6rz36p2xqbh2lugpa7cuunc74uzi6bu7keead226yfakmbfa'
+  OCI_USER_ID: 'ocid1.user.oc1..aaaaaaaaps5lmmwx62a4xuymrfkqmrnby6sraythubzjdzwttnl7ykqzp4ka'
+  HTTP_PROXY: 'http://ges-proxy.oracle.com:80'
+  HTTPS_PROXY: 'http://ges-proxy.oracle.com:80'

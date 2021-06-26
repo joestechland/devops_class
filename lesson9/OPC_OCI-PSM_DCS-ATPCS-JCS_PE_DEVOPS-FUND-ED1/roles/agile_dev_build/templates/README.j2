@@ -1,0 +1,22 @@
+ #############################################################
+          Event ID {{ event_id }}
+
+
+1) Cloud Domain Name:
+    {{ domain_id }}
+
+2) Java Cloud Instance Name:
+    {{ jcs_name}}{{student_user | regex_replace('-', '')}}
+
+3) Visual Builder Studio URL
+    {{ adcs_json.output.serviceAccessUrl }}
+
+4) WLS Admin URL
+    {{ wls_json.output.WLS_ROOT }}
+
+5) WLS Credentials
+    admin_wls_user: {{ admin_wls_user }}
+    admin_wls_password: {{ admin_wls_password }}
+
+ #############################################################
+
