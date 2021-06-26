@@ -15,5 +15,5 @@
       debug:
         var: return_object
 
-- include: compute_create.yml compartment_id={{return_object.compartments[0].id}}
-- include: create_readme.yml
+#- include: compute_create.yml compartment_id={{return_object.compartments[0].id}}
+#- include: create_readme.yml
