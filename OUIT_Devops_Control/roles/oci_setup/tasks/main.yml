@@ -32,7 +32,8 @@
     name: oci
 
 - name: install OCI Ansible galaxy collections.
-  command: ansible-galaxy collection install oracle.oci
+  shell: ansible-galaxy collection install  oracle.oci
+  become: false
 
 - name: Create sample up OCI Config file
   command: /home/{{ user }}/bin/oci setup oci-cli-rc --file "/home/{{ user }}/.oci/oci_cli_rc"
