@@ -55,11 +55,12 @@ How to edit test and run Ansible scripts against OCI w/o using ed-devops/vim
     # test ansible  oci modules
     # go to dir where sample_oci_playbook.yml is
     # run ansible-playbook sample_oci_playbook.yml
-    # it should run but fial due to not connecting to oci imag e- nbut modules are found
+    # it should run but fail due to not connecting to oci image- but modules are found (unless I include config file and keys)
     # test oci clI
     # in temrminal run oci
     # should see list of commands
     # add to favorites menu: https://askubuntu.com/questions/1193496/add-app-to-favorites-from-command-line
+    # Anyconnect installed for VPN access
 
 
 
