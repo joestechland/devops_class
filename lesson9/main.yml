@@ -1,6 +1,6 @@
 ---
 #  - name: Build java oci image.
-  - hosts: oci_javaoci_oel8
+  - hosts: oci-javaoci_oel8
     become: true
 #      - update yum, new user: oracle, add to sudoer, git, curl, python3, python-pip3, java jdk 11 + env vars, derby db, jmeter, intellij,
 #      - maven, docker, minikube, kubectl, jenkins, clone repo for course, labs files

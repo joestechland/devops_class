@@ -60,14 +60,19 @@ How to edit test and run Ansible scripts against OCI w/o using ed-devops/vim
     # add to favorites menu: https://askubuntu.com/questions/1193496/add-app-to-favorites-from-command-line
     # Anyconnect installed for VPN access
 
-# Intended updates: add pre-confied Config file.
+# Update vagrant to use only 2 cpus# 
+# Intended updates: copy pre-confgured Config file.
 # Install anyconnect for VPN (download and unarchive)
-# install sample_ansible_playbook.yml
-# Add filezilla for copying files
-# option to create your own user 
-# clone ed-devops
-# run oci plays to see their output s- stsart gettign familair with "OCI_Gather_Facts" - where is image display name coming from
-# Update vagrant to use only 2 cpus
+# copy sample_ansible_playbook.yml
+# install filezilla for copying files
+# option to create your own user - create "oracle" and install oci stuff to oracle
+# Class Demos:
+# clone ed-devops into image
+# run oci plays to see their outputs- stsart gettign familair with "OCI_Gather_Facts" - where is image display name coming from
+# rewrite OCI playbook in more "Joe-ish" fashion
+    - provision new compute image
+    - configure image (check gnome)
+
 
 
 
