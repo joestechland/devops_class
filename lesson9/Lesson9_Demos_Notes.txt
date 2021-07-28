@@ -38,14 +38,7 @@ How to edit test and run Ansible scripts against OCI w/o using ed-devops/vim
     2 roles: amsible setup, oci_setup:
      # setup:
     # vagrant up 
-    # choose public network
-    # log in and open terminal and run ip a and see the public ip address
-    # ssh-copy-id -i ~/.ssh/key vagrant@public_ip_address
-    # ssh-add ~/.ssh/key 
-    # test you can log in as vagrant ssh vagrant@public_ip_address
-    # create a shares dir
-    # create shared drive to where th eansible files are
-    # Open shared drive and copy to a loca folder
+    # download ansible script from github.com/joestechland/devops_class
     # sudo apt update
     # sudo apt install ansible
     # cd to where ansible files are
@@ -57,11 +50,13 @@ How to edit test and run Ansible scripts against OCI w/o using ed-devops/vim
     # run ansible-playbook sample_oci_playbook.yml
     # it should run but fail due to not connecting to oci image- but modules are found (unless I include config file and keys)
     # test oci clI
-    # in temrminal run oci
+    # in terminal run oci
     # should see list of commands
     # add to favorites menu: https://askubuntu.com/questions/1193496/add-app-to-favorites-from-command-line
     # Anyconnect installed for VPN access
 
+# to be done:
+# install anyconnect, setup add user, change vagrant to only 2 cpus
 
 
 We'll look at part 2 first.
