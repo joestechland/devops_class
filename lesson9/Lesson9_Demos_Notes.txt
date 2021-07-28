@@ -38,13 +38,22 @@ How to edit test and run Ansible scripts against OCI w/o using ed-devops/vim
     2 roles: amsible setup, oci_setup:
      # setup:
     # vagrant up 
+<<<<<<< HEAD
     # download ansible script from github.com/joestechland/devops_class
+=======
+    # choose public network
+    # log in and open terminal and run ip a and see the public ip address
+    # ssh-copy-id -i ~/.ssh/key vagrant@public_ip_address
+    # ssh-add ~/.ssh/key 
+    # test you can log in as vagrant ssh vagrant@public_ip_address
+    # download ouit_devops.zip files from github
+
+>>>>>>> 477c3f8249d12d41f940ceb3f8e91c7c219fccec
     # sudo apt update
     # sudo apt install ansible
     # cd to where ansible files are
     # ansible-playbook main.yml
-    # when done run: ansible-galaxy install oracle.oci
-    # update config file in ~/.oci/oci-cli-rc
+    # update config file in ~/.oci/config
     # test ansible  oci modules
     # go to dir where sample_oci_playbook.yml is
     # run ansible-playbook sample_oci_playbook.yml
@@ -55,22 +64,33 @@ How to edit test and run Ansible scripts against OCI w/o using ed-devops/vim
     # add to favorites menu: https://askubuntu.com/questions/1193496/add-app-to-favorites-from-command-line
     # Anyconnect installed for VPN access
 
+<<<<<<< HEAD
 # to be done:
 # install anyconnect, setup add user, change vagrant to only 2 cpus
+=======
+# Update vagrant to use only 2 cpus# 
+# Intended updates: copy pre-confgured Config file.
+# Install anyconnect for VPN (download and unarchive)
+# copy sample_ansible_playbook.yml
+# install filezilla for copying files
+# option to create your own user - create "oracle" and install oci stuff to oracle
+# Class Demos:
+# clone ed-devops into image
+# run oci plays to see their outputs- stsart gettign familair with "OCI_Gather_Facts" - where is image display name coming from
+# rewrite OCI playbook in more "Joe-ish" fashion
+    - provision new compute image
+    - configure image (check gnome)
 
+
+
+>>>>>>> 477c3f8249d12d41f940ceb3f8e91c7c219fccec
+
+Next week
 
 We'll look at part 2 first.
 1. Clone Ansible_Playbook repo locally
 2. Open repo in VSC and find my desired Playbook
 3. Make copy of playbook ( we'll cover branches in Git later) to be used with new course build
-4. Use vagrant to make local vm for testing.
-5. Set up ssh to log into vm - ssh-copy-id for keys
-6. Open terminal and ssh in 
-7. 
-
-1. Setup Control machine for OCI CLI & ansible OCI modules
-2. Begin working with OUIT OCI ocic_scripts
-3. Clone (or at least edit) ed-devops Ansible Scripts repo
 
 Provision and Configure a new OUIT OCI Env - Build and purge from scratch
 https://superuser.com/questions/1255634/install-ansible-in-windows-using-git-bash
