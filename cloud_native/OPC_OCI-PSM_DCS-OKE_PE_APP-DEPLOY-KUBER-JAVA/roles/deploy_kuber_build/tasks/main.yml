@@ -1,0 +1,102 @@
+---
+
+
+  - name: Get full compartment list
+    oci_compartment_facts:
+        compartment_id: '{{tenancy_id}}'
+    register: return_object2
+
+
+  - name: Set dev compartment name when oci_user is not defined
+    set_fact:
+      dev_compartment_name: '{{event_id}}-C01'
+    when: 'oci_user == "<oci_user>"'
+
+
+  - name: Set oci user name when oci_user is not defined
+    set_fact:
+      oci_user: '{{event_id}}-lab.user01'
+    when: 'oci_user == "<oci_user>"'
+
+
+
+  - name: Set dev compartmentname when oci_user is  defined
+    set_fact:
+      dev_compartment_name: '{{ oci_user | regex_replace("lab.user", "C") }}'
+    when: 'oci_user != "<oci_user>"'
+
+
+
+
+  - name: Get Dev compartment ID
+    set_fact:
+      dev_comp_id: '{{ item.id }}'
+    with_items: '{{return_object2.compartments}}'
+    when: dev_compartment_name in item.name
+
+
+  - name: 'Set OCI user name'
+    set_fact:
+      oci_student_user: '{{ student_user | regex_replace("ora0", "lab.user") }}'
+
+
+  - name: Get all the group list
+    oci_group_facts:
+    register: group_list
+
+
+  - name: Get the Group id
+    set_fact:
+        group_id: '{{ item.id }}'
+    with_items: '{{ group_list.groups }}'
+    when: "item.name == 'KUBERNETES_GROUP'"
+
+
+  - name: Update group with users for the course
+    oci_group:
+        id: '{{ group_id }}'
+        description: 'Group for the Kubernetes course'
+        users: ['{{ oci_student_user }}']
+        state: 'present'
+    when: '"lab.user" in oci_student_user'
+
+
+  - name: Get the user list
+    oci_user_facts:
+    register: user_list
+
+
+  - name: Get the user id
+    set_fact:
+        user_id: '{{ item.id }}'
+    with_items: '{{ user_list.users }}'
+    when: "item.name == '{{ event_id }}kuber'"
+
+
+  - name: Create the dummy user for kubernetes
+    oci_user:
+        name: '{{ event_id }}kuber'
+        description: 'Ansible  User'
+        user_groups: ['GRP{{ oci_user }}']
+        create_or_reset_ui_password: False
+        state: 'present'
+    when: user_id is not defined
+
+
+  - name: Get the user list
+    oci_user_facts:
+    register: user_list
+
+
+  - name: Get the user id
+    set_fact:
+        user_id: '{{ item.id }}'
+    with_items: '{{ user_list.users }}'
+    when: "item.name == '{{ event_id }}kuber'"
+
+
+
+  - include: deploy_kuber.yml compartment_id={{ dev_comp_id }} user_id={{user_id}}
+  - include: create_readme.yml compartment_id={{return_object.compartments[0].id}}
+
+

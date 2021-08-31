@@ -1,0 +1,74 @@
+# /git_lab/git_lab_prod/projects/git_env/bin/ansible-playbook build.yml -vvvv
+---
+  - name: Deploy Deploy Practcial Cloud Native For Java Developers
+    hosts: 127.0.0.1
+    environment:
+      PYTHONPATH: '/git_lab/git_lab_prod/projects/ansible_modules/OCIC'
+      LD_LIBRARY_PATH: "/git_lab/git_lab_prod/projects/oracle_lib/"
+      OCI_TENANCY: 'ocid1.tenancy.oc1..aaaaaaaawprhiv4vxq5vlj7f27kyidr675jdepem47s7mzfe6tfhxbpo74xq'
+      OCI_USER_KEY_FILE: '/home/oracle/.oci/oci_api_key.pem'
+      OCI_USER_FINGERPRINT: '9a:ef:fb:dc:31:9e:76:d9:66:0f:dc:c6:fc:57:98:05'
+      OCI_USER_ID: 'ocid1.user.oc1..aaaaaaaas5iel76hr4fqiuzzfewe5hzswizrakoczkqt5yxuhmg6mcjxqgaq'
+      HTTP_PROXY: 'http://ges-proxy.oracle.com:80'
+      HTTPS_PROXY: 'http://ges-proxy.oracle.com:80'
+      TNS_ADMIN: "/tmp/3008999/DB3008999_wallet"
+    vars:
+      course_title: '<gcc_name>'
+      tenancy_id: 'ocid1.tenancy.oc1..aaaaaaaawprhiv4vxq5vlj7f27kyidr675jdepem47s7mzfe6tfhxbpo74xq'
+      user_ocid:  "ocid1.user.oc1..aaaaaaaas5iel76hr4fqiuzzfewe5hzswizrakoczkqt5yxuhmg6mcjxqgaq"
+      idcs_name: 'idcs-c450e67882d343388c153308b0409a26'
+      admin_account_username: 'gitousupport'
+      admin_account_password: 'VHlHCRpQOq1!'
+      domain_id: 'ocuocictrng22'
+      psm_endpoint: 'psm.us.oraclecloud.com'
+      cpu_core_count: 1
+      db_name: "DB{{ event_id }}"
+      db_password: "Welcome_1234#"
+      db_size: 1
+      edition: "EE"
+      feature_set: "JAVA"
+      idcs_name: "idcs-c450e67882d343388c153308b0409a26"
+      instance_name: "ATPJAVA"
+      num_ocpus: 1
+      devcs_name: 'AutoDevCs'
+      event_id: '3008999'
+      student_user: 'ora001'
+      oci_user: 'lab.user01'
+      oci_step: 'true'
+      client_id: '7378e628c1b24fe38f31af25bc6a3857'
+      client_secret: 'd2ac81d0-b022-408d-ba1f-0fb2dc289caa'
+      log_path: '/tmp/3008999'
+      oci_region: 'us-ashburn-1'
+      wallet_password: "#T3rmin4L#12"
+      landing_pad_user: 'readmeupload'
+      lading_pad_server: 'git-edmaster.us.oracle.com'
+      lading_pad_path: '/home/readmeupload/OPC-UPLOAD/{{ event_id }}'
+      role_list:
+          - 'DEVELOPER_ADMINISTRATOR'
+          - 'DEVELOPER_USER'
+
+
+
+    roles:
+      - create_atp_instance
+
+
+    roles :
+      - deploy_kuber_build
+
+
+  - name: Create a OCI connection
+    hosts: selenium_compute
+    vars:
+      tenancy_id: 'ocid1.tenancy.oc1..aaaaaaaawprhiv4vxq5vlj7f27kyidr675jdepem47s7mzfe6tfhxbpo74xq'
+      domain_id: 'ocuocictrng22'
+      log_path: '/tmp/3008999'
+      admin_account_username: 'gitousupport'
+      admin_account_password: 'VHlHCRpQOq1!'
+
+
+    roles :
+      - oci_connection
+
+
+

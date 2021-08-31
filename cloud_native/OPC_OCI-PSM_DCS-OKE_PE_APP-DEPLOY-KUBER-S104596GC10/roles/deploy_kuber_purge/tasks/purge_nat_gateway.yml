@@ -1,0 +1,19 @@
+---
+
+  - name: 'Get information of all NAT gateways'
+    oci_network_nat_gateway_facts:
+      compartment_id: '{{ tenancy_id }}'
+      region: '{{ oci_region }}'
+      vcn_id: '{{ vcn_id }}'
+    register: return_object_nat_gateway
+
+
+  - name: 'Deleting NAT gateways'
+    oci_network_nat_gateway:
+      id: '{{ item.id }}'
+      region: '{{ oci_region }}'
+      state: absent
+    with_items: '{{ return_object_nat_gateway.nat_gateways }}'
+    loop_control:
+      label: "{{ item.display_name }}"
+    ignore_errors: yes

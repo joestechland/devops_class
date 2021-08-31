@@ -1,0 +1,222 @@
+---
+
+  - name: 'Set OCI user name'
+    set_fact:
+      oci_student_user: '{{ student_user | regex_replace("ora0", "lab.user") }}'
+
+
+  - name: Get all the group list
+    oci_identity_group_facts:
+       compartment_id: '{{ tenancy_id }}'
+    register: group_list
+
+
+  - name: Get the Group id
+    set_fact:
+        group_id: '{{ item.id }}'
+    with_items: '{{ group_list.groups }}'
+    when: "item.name == 'KUBERNETES_GROUP'"
+
+
+  - name: Get the User list
+    oci_identity_user_facts:
+       compartment_id: '{{ tenancy_id }}'
+    register: user_list
+
+  - name: Get the user id
+    set_fact:
+       user_id: '{{ item.id }}'
+    with_items: '{{ user_list.users }}'
+    when: item.name == oci_student_user
+
+  - name: List the user group memberhip
+    oci_identity_user_group_membership_facts:
+       compartment_id: '{{ tenancy_id }}'
+       user_id: '{{ user_id }}'
+    when: user_id is defined
+    register: member_list
+
+
+  - name: Get the user membership id
+    set_fact:
+       user_group_membership_id: '{{ item.id }}'
+    with_items: '{{ member_list.user_group_memberships }}'
+    when: user_id is defined
+
+
+  - name: Delete the User from the Group
+    oci_identity_user_group_membership:
+        compartment_id: '{{ tenancy_id }}'
+        user_group_membership_id: '{{ user_group_membership_id }}'
+        user_id: '{{ user_id }}'
+        state: absent
+    when: '"lab.user" in oci_student_user'
+    ignore_errors: yes
+
+  - name: Delete the Autonomous Developer Cloud
+    adcs:
+        state: absent
+        name: '{{ devcs_name }}{{event_id}}'
+        identity: '{{ idcs_name }}'
+        user: '{{ admin_account_username }}'
+        password: '{{ admin_account_password }}'
+        wait: True
+        proxies:
+          http: 'http://ges-proxy.oracle.com:80'
+          https: 'http://ges-proxy.oracle.com:80'
+
+
+  - name: Get the cluster details
+    oci_container_engine_cluster_facts:
+      compartment_id: '{{ tenancy_id }}'
+      name: "cluster{{ event_id }}"
+    register: cluster_list
+
+
+  - name: Get the cluster id
+    set_fact:
+      cluster_id: '{{ item.id }}'
+    with_items: '{{ cluster_list.clusters }}'
+    when: item.lifecycle_state == 'ACTIVE'
+
+
+
+  - name: Delete the Cluster
+    oci_container_engine_cluster:
+      id: '{{ cluster_id }}'
+      state: absent    
+    when: cluster_id is defined
+
+
+
+  - name: Get VCN ID
+    oci_network_vcn_facts:
+      compartment_id: '{{ tenancy_id }}'
+      display_name: "VCNOKE{{ event_id }}"
+      region: '{{ oci_region }}'
+    register: return_object_vcn
+
+  - name: Delete Load Balancer
+    include: purge_loadbalancer.yml
+
+
+  - name: Delete the subnets inside the VCN
+    include: purge_subnets.yml vcn_id='{{return_object_vcn.vcns[0].id}}'
+    when: return_object_vcn.vcns.0 is defined
+
+
+  - name: Delete the route tables inside the VCN
+    include: purge_route_tables.yml vcn_id='{{return_object_vcn.vcns[0].id}}'
+    when: return_object_vcn.vcns.0 is defined
+
+
+  - name: Delete the Internet Gateways inside the VCN
+    include: purge_internet_gateways.yml vcn_id='{{return_object_vcn.vcns[0].id}}'
+    when: return_object_vcn.vcns.0 is defined
+
+  - name: Delete the Service Gateways inside the VCN
+    include: purge_service_gateway.yml vcn_id='{{return_object_vcn.vcns[0].id}}'
+    when: return_object_vcn.vcns.0 is defined
+
+
+  - name: Delete the nat Gateways inside the VCN
+    include: purge_nat_gateway.yml vcn_id='{{return_object_vcn.vcns[0].id}}'
+    when: return_object_vcn.vcns.0 is defined
+
+  - name: Delete the security list inside the VCN
+    include: purge_security_lists.yml vcn_id='{{return_object_vcn.vcns[0].id}}'
+    when: return_object_vcn.vcns.0 is defined
+
+
+
+  - name: Delete the VCN
+    oci_network_vcn:
+      region: '{{ oci_region }}'
+      id: '{{return_object_vcn.vcns[0].id}}'
+      state: absent
+#     wait_until: 'TERMINATED'
+    when: return_object_vcn.vcns.0 is defined
+
+
+  - name: Get the user list
+    oci_identity_user_facts:
+       compartment_id: '{{ tenancy_id }}'
+    register: user_list
+
+
+
+  - name: Get the user id
+    set_fact:
+        user_id: '{{ item.id }}'
+    with_items: '{{ user_list.users }}'
+    when: "item.name == '{{ event_id }}kuber'"
+
+
+  - name: Get the list of API keys before
+    oci_identity_api_key_facts:
+      user_id: '{{ user_id }}'
+    register: api_key_list
+    when: user_id is defined
+
+
+  - name: Get the fingerprint
+    shell: "openssl rsa -pubout -outform DER -in {{log_path}}/oci_api_key.pem | openssl md5 -c | cut -d'=' -f2"
+    register: shell_output
+
+  - name: Setting the fingerprint
+    set_fact:
+      fingerprint: '{{ shell_output.stdout.lstrip() }}'
+
+  - name: Delete all API keys for the user
+    oci_identity_api_key:
+      user_id: '{{ user_id }}'
+      key: '{{ item.key_id }}'
+      fingerprint: '{{ shell_output.stdout.lstrip() }}'
+      state: 'absent'
+    with_items: '{{ api_key_list.api_keys }}'
+    when: user_id is defined
+
+
+  - name: List groups
+    oci_identity_group_facts:
+      compartment_id: '{{ tenancy_id }}'
+      name: 'GRP{{ oci_user }}'
+    register: group_list
+
+  - name: Get group id
+    set_fact:
+       group_id: '{{ item.id }}'
+    with_items: '{{ group_list.groups }}'
+    when: item.name == 'GRP{{ oci_user }}'
+
+  - name: List the user group memberhip
+    oci_identity_user_group_membership_facts:
+       compartment_id: '{{ tenancy_id }}'
+       user_id: '{{ user_id }}'
+    when: user_id is defined
+    register: member_list
+
+  - name: Get the user membership id
+    set_fact:
+        user_group_membership_id: '{{ item.id }}'
+    with_items: '{{ member_list.user_group_memberships }}'
+    when: user_id is defined
+
+  - name: Delete user_group_membership
+    oci_identity_user_group_membership:
+       compartment_id: '{{ tenancy_id }}'
+       user_group_membership_id: '{{ user_group_membership_id }}'
+       group_id: '{{ group_id }}'
+       state: absent
+    when: user_id is defined and member_list.user_group_memberships != []
+
+  - name: Delete the oci user
+    oci_identity_user:
+        user_id: '{{ user_id }}'
+        state: absent
+        force_create: no
+    when: user_id is defined
+
+
+
+

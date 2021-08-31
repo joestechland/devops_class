@@ -1,0 +1,37 @@
+# /git_lab/git_lab_prod/projects/git_env/bin/ansible-playbook purge.yml -vvvv
+---
+  - name: Delete the Cluster for Deploy Practcial Cloud Native For Java Developers
+    hosts: 127.0.0.1
+    environment:
+      PYTHONPATH: '/git_lab/git_lab_prod/projects/ansible_modules/OCIC'
+      LD_LIBRARY_PATH: "/git_lab/git_lab_prod/projects/oracle_lib/"
+      OCI_TENANCY: '<Tenancy_OCID>'
+      OCI_USER_KEY_FILE: '/home/oracle/.oci/oci_api_key.pem'
+      OCI_USER_FINGERPRINT: '9a:ef:fb:dc:31:9e:76:d9:66:0f:dc:c6:fc:57:98:05'
+      OCI_USER_ID: '<User_OCID>'
+      HTTP_PROXY: 'http://ges-proxy.oracle.com:80'
+      HTTPS_PROXY: 'http://ges-proxy.oracle.com:80'
+    vars:
+      course_title: '<gcc_name>'
+      tenancy_id: '<Tenancy_OCID>'
+      user_ocid:  "<User_OCID>"
+      idcs_name: '<IDCS_domain>'
+      admin_account_username: '<username>'
+      admin_account_password: '<password>'
+      db_name: "DB{{ event_id }}"
+      instance_name: "ADWSQL"
+      domain_id: '<domain_name>'
+      devcs_name: 'AutoDevCs'
+      student_user: '<student_user>'
+      oci_user: '<oci_user>'
+      oci_step: 'true'
+      psm_endpoint: '<psm>'
+      event_id: '<event_id>'
+      log_path: '<log_path>'
+      oci_region: 'us-ashburn-1'
+
+
+
+    roles :
+      - deploy_kuber_purge
+      - remove_atp_instance

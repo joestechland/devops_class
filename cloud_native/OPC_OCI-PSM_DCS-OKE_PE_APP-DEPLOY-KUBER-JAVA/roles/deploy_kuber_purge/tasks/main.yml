@@ -1,0 +1,152 @@
+---
+
+  - name: 'Set OCI user name'
+    set_fact:
+      oci_student_user: '{{ student_user | regex_replace("ora0", "lab.user") }}'
+
+
+  - name: Get all the group list
+    oci_group_facts:
+    register: group_list
+
+
+  - name: Get the Group id
+    set_fact:
+        group_id: '{{ item.id }}'
+    with_items: '{{ group_list.groups }}'
+    when: "item.name == 'KUBERNETES_GROUP'"
+
+
+  - name: Delete the User from the Group
+    oci_group:
+        id: '{{ group_id }}'
+        description: 'Group for the Kubernetes course'
+        delete_user_memberships: True
+        users: ['{{ oci_student_user }}']
+        state: 'present'
+    when: '"lab.user" in oci_student_user'
+
+
+  - name: Delete the Autonomous Developer Cloud
+    adcs:
+        state: absent
+        name: '{{ devcs_name }}{{event_id}}'
+        identity: '{{ idcs_name }}'
+        user: '{{ admin_account_username }}'
+        password: '{{ admin_account_password }}'
+        wait: True
+        proxies:
+          http: 'http://ges-proxy.oracle.com:80'
+          https: 'http://ges-proxy.oracle.com:80'
+
+
+  - name: Get the cluster details
+    oci_cluster_facts:
+      compartment_id: '{{ tenancy_id }}'
+      name: "cluster{{ event_id }}"
+    register: cluster_list
+
+
+  - name: Get the cluster id
+    set_fact:
+      cluster_id: '{{ item.id }}'
+    with_items: '{{ cluster_list.clusters }}'
+    when: item.lifecycle_state == 'ACTIVE'
+
+
+
+  - name: Delete the Cluster
+    oci_cluster:
+      id: '{{ cluster_id }}'
+      state: absent    
+    when: cluster_id is defined
+
+
+
+  - name: Get VCN ID
+    oci_vcn_facts:
+      compartment_id: '{{ tenancy_id }}'
+      display_name: "VCNOKE{{ event_id }}"
+      region: '{{ oci_region }}'
+    register: return_object_vcn
+
+  - name: Delete Load Balancer
+    include: purge_loadbalancer.yml
+
+
+  - name: Delete the subnets inside the VCN
+    include: purge_subnets.yml vcn_id='{{return_object_vcn.vcns[0].id}}'
+    when: return_object_vcn.vcns.0 is defined
+
+
+  - name: Delete the route tables inside the VCN
+    include: purge_route_tables.yml vcn_id='{{return_object_vcn.vcns[0].id}}'
+    when: return_object_vcn.vcns.0 is defined
+
+
+  - name: Delete the Internet Gateways inside the VCN
+    include: purge_internet_gateways.yml vcn_id='{{return_object_vcn.vcns[0].id}}'
+    when: return_object_vcn.vcns.0 is defined
+
+  - name: Delete the Service Gateways inside the VCN
+    include: purge_service_gateway.yml vcn_id='{{return_object_vcn.vcns[0].id}}'
+    when: return_object_vcn.vcns.0 is defined
+
+
+  - name: Delete the nat Gateways inside the VCN
+    include: purge_nat_gateway.yml vcn_id='{{return_object_vcn.vcns[0].id}}'
+    when: return_object_vcn.vcns.0 is defined
+
+  - name: Delete the security list inside the VCN
+    include: purge_security_lists.yml vcn_id='{{return_object_vcn.vcns[0].id}}'
+    when: return_object_vcn.vcns.0 is defined
+
+
+
+  - name: Delete the VCN
+    oci_vcn:
+      region: '{{ oci_region }}'
+      id: '{{return_object_vcn.vcns[0].id}}'
+      state: absent
+      wait_until: 'TERMINATED'
+    when: return_object_vcn.vcns.0 is defined
+
+
+  - name: Get the user list
+    oci_user_facts:
+    register: user_list
+
+
+  - name: Get the user id
+    set_fact:
+        user_id: '{{ item.id }}'
+    with_items: '{{ user_list.users }}'
+    when: "item.name == '{{ event_id }}kuber'"
+
+
+  - name: Get the list of API keys before
+    oci_api_key_facts:
+      user_id: '{{ user_id }}'
+    register: api_key_list
+    when: user_id is defined
+
+
+  - name: Delete all API keys for the user
+    oci_api_key:
+      user_id: '{{ user_id }}'
+      id: '{{ item.key_id }}'
+      state: 'absent'
+    with_items: '{{ api_key_list.api_keys }}'
+    when: user_id is defined
+
+
+  - name: Delete the oci user
+    oci_user:
+        user_id: '{{ user_id }}'
+        state: absent
+        force: yes
+    when: user_id is defined
+
+
+
+

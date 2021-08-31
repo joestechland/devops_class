@@ -1,0 +1,754 @@
+---
+
+  - name: Get the Availability domain facts
+    oci_ad_facts:
+      compartment_id: '{{ compartment_id }}'
+      region: '{{ oci_region }}'
+    register: ad_list
+
+
+
+  - name: Setting the subnet_dict
+    set_fact:
+      subnet_dict: '{{ subnet_dict | default({}) | combine({ "10.0." + item.name.split("-")[3] + ".0/24": item.name }) }}'
+    with_items: '{{ ad_list.availability_domains}}'
+
+
+  - name: Setting the av_domain
+    set_fact:
+      av_domain: '{{ ad_list.availability_domains[0].name.split("-")[:3] | join("-") }}'
+
+
+  - name: 'Get all service list'
+    oci_service_facts:
+      region: '{{ oci_region }}'
+    register: service_list
+
+
+  - name: Set the ocid of service id
+    set_fact:
+      all_service_id: '{{ item.id }}'
+    with_items: '{{ service_list.services }}'
+    when: 'item.name == "All IAD Services In Oracle Services Network"'
+
+  - name: Checking the VCN present in the domain
+    oci_vcn_facts:
+      compartment_id: '{{ tenancy_id }}'
+      region: '{{ oci_region }}'
+      display_name: "VCNOKE{{ event_id }}"
+    register: return_object_vcn2
+
+
+
+  - name: Create VCN for a event
+    oci_vcn:
+        state: present
+        name: "VCNOKE{{ event_id }}"
+        dns_label: 'vcnoke'
+        compartment_id: '{{ tenancy_id }}'
+        cidr_block: '10.0.0.0/16'
+        region: '{{ oci_region }}'
+    when: return_object_vcn2.vcns.0 is not defined
+
+
+  - name: Get VCN ID
+    oci_vcn_facts:
+      compartment_id: '{{ tenancy_id }}'
+      display_name: "VCNOKE{{ event_id }}"
+      region: '{{ oci_region }}'
+    register: return_object_vcn
+
+
+  - name: Create a service Gateway
+    oci_service_gateway:
+      display_name: 'OKEServiceGateway{{event_id}}'
+      compartment_id: '{{ tenancy_id }}'
+      services:
+        - service_id: '{{ all_service_id }}'
+      vcn_id: '{{ return_object_vcn.vcns[0].id }}'
+    when: return_object_vcn2.vcns.0 is not defined
+
+  - name: Create a NAT gateway
+    oci_nat_gateway:
+      compartment_id: '{{ tenancy_id }}'
+      vcn_id: '{{ return_object_vcn.vcns[0].id }}'
+      display_name: 'OKENATGateway{{event_id}}'
+    when: return_object_vcn2.vcns.0 is not defined
+
+
+  - name: Get all the NAT gateways in a compartment
+    oci_nat_gateway_facts:
+      compartment_id: '{{ tenancy_id }}'
+    register: nat_list
+
+
+  - name: Get all the service gateways in a compartment
+    oci_service_gateway_facts:
+      compartment_id: '{{ tenancy_id }}'
+    register: service_gateway_list
+
+
+  - name: Get service gateway id
+    set_fact:
+      service_gateway_id: '{{ item.id }}'
+    with_items: '{{ service_gateway_list.service_gateways }}'
+    when: "item.display_name == 'OKEServiceGateway{{event_id}}'"
+
+
+  - name: Get nat gateway id
+    set_fact:
+      network_gateway_id: '{{ item.id }}'
+    with_items: '{{ nat_list.nat_gateways }}'
+    when: "item.display_name == 'OKENATGateway{{event_id}}'"
+
+
+  - name: Get the route rules id
+    oci_route_table_facts:
+      compartment_id: "{{ tenancy_id }}"
+      vcn_id: '{{ return_object_vcn.vcns[0].id }}'
+    register: rt_list
+
+
+  - name: Get Route table names
+    set_fact:
+      route_table_names: '{{ route_table_names | default([]) + [item.display_name] }}'
+    with_items: '{{ rt_list.route_tables }}'
+
+
+  - debug:
+      msg: '{{ route_table_names }}'
+
+
+
+  - name: Get Route table id
+    set_fact:
+      rt_default_id: '{{ item.id }}'
+    with_items: '{{ rt_list.route_tables }}'
+    when: "'Default' in item.display_name"
+
+
+
+
+  - name: create default  route rule
+    oci_route_table:
+      rt_id: '{{ rt_default_id }}'
+      purge_route_rules: 'yes'
+      route_rules:
+        - destination: 0.0.0.0/0
+          destination_type: CIDR_BLOCK
+          network_entity_id: '{{ network_gateway_id }}'
+        - destination: 'all-iad-services-in-oracle-services-network'
+          destination_type: SERVICE_CIDR_BLOCK
+          network_entity_id: '{{ service_gateway_id }}'
+      state: present
+    when: return_object_vcn2.vcns.0 is not defined
+
+
+  - name: subnet list
+    oci_subnet_facts:
+      compartment_id: "{{ tenancy_id }}"
+      vcn_id: '{{ return_object_vcn.vcns[0].id }}'
+    register: subnet_total_list
+
+
+  - name: Get subnet names
+    set_fact:
+      subnet_name_list: '{{ subnet_name_list | default([]) + [item.display_name] }}'
+    with_items: '{{ subnet_total_list.subnets }}'
+
+
+
+
+
+  - name: Create private subnet PrivateSubnet1 in the VCN
+    oci_subnet:
+      cidr_block: '10.0.30.0/24'
+      compartment_id: "{{ tenancy_id }}"
+      vcn_id: '{{ return_object_vcn.vcns[0].id }}'
+      dns_label: 'Priv1'
+      display_name: 'PrivateSubnet1'
+      prohibit_public_ip_on_vnic: yes
+      region: '{{ oci_region }}'
+    when: "subnet_name_list is not defined or (subnet_name_list is defined and  'PrivateSubnet1' not in subnet_name_list)"
+
+
+  - name: Create private subnet PrivateSubnet2 in the VCN
+    oci_subnet:
+      cidr_block: '10.0.40.0/24'
+      compartment_id: "{{ tenancy_id }}"
+      vcn_id: '{{ return_object_vcn.vcns[0].id }}'
+      dns_label: 'Priv2'
+      display_name: 'PrivateSubnet2'
+      prohibit_public_ip_on_vnic: yes
+      region: '{{ oci_region }}'
+    when: "subnet_name_list is not defined or (subnet_name_list is defined and  'PrivateSubnet2' not in subnet_name_list)"
+
+
+  - name: Create private subnet PrivateSubnet3 in the VCN
+    oci_subnet:
+      cidr_block: '10.0.50.0/24'
+      compartment_id: "{{ tenancy_id }}"
+      vcn_id: '{{ return_object_vcn.vcns[0].id }}'
+      dns_label: 'Priv3'
+      display_name: 'PrivateSubnet3'
+      prohibit_public_ip_on_vnic: yes
+      region: '{{ oci_region }}'
+    when: "subnet_name_list is not defined or (subnet_name_list is defined and  'PrivateSubnet3' not in subnet_name_list)"
+
+
+
+  - name: Create Internet Gateway in the VCN
+    oci_internet_gateway:
+      compartment_id: "{{ tenancy_id }}"
+      vcn_id: '{{ return_object_vcn.vcns[0].id }}'
+      name: "Internet Gateway VCNOKE{{event_id}}"
+      enabled: yes
+      region: '{{ oci_region }}'
+    register: ig_list
+    when: return_object_vcn2.vcns.0 is not defined
+
+  - name: create route rule for private subnet
+    oci_route_table:
+      compartment_id: '{{ tenancy_id }}'
+      vcn_id: '{{ return_object_vcn.vcns[0].id }}'
+      display_name: 'RouteTableLB'
+      route_rules:
+        - cidr_block: '0.0.0.0/0'
+          network_entity_id: '{{ ig_list.internet_gateway.id }}'
+      state: present
+    when: "'RouteTableLB' not in route_table_names"
+
+
+  - name: Get information of all Security lists
+    oci_security_list_facts:
+      compartment_id: '{{ tenancy_id }}'
+      region: '{{ oci_region }}'
+      vcn_id: '{{ return_object_vcn.vcns[0].id }}'
+    register: return_object_security_list
+
+  - name: Delete Security lists before creating
+    oci_security_list:
+      id: '{{ item.id }}'
+      region: '{{ oci_region }}'
+      state: 'absent'
+    with_items: '{{ return_object_security_list.security_lists }}'
+    loop_control:
+      label: "{{ item.display_name }}"
+    when: '"LBSecurityList" in item.display_name and "RouteTableLB" not in route_table_names'
+
+  - name: Get information of all Security lists
+    oci_security_list_facts:
+      compartment_id: '{{ tenancy_id }}'
+      region: '{{ oci_region }}'
+      vcn_id: '{{ return_object_vcn.vcns[0].id }}'
+    register: return_object_security_list
+
+  - name: Set the security_list id
+    set_fact:
+      security_list_id: '{{ item.id }}'
+    with_items: '{{return_object_security_list.security_lists}}'
+    when: '"Default" in item.display_name'
+
+
+  - name: Update a security list with rules for Default subnet
+    oci_security_list:
+       id: '{{ security_list_id }}'
+       vcn_id: '{{ return_object_vcn.vcns[0].id }}'
+       region: '{{ oci_region }}'
+       state: 'present'
+       ingress_security_rules:
+         - source: '10.0.30.0/24'
+           is_stateless: True
+           protocol: 'all'
+         - source: '10.0.40.0/24'
+           is_stateless: True
+           protocol: 'all'
+         - source: '10.0.50.0/24'
+           is_stateless: True
+           protocol: 'all'
+         - source: '10.0.60.0/24'
+           is_stateless: False
+           protocol: '6'
+           tcp_options:
+              destination_port_range:
+                 min: 30000
+                 max: 32767
+         - source: '10.0.0.0/16'
+           is_stateless: False
+           protocol: '6'
+           tcp_options:
+              destination_port_range:
+                 min: 111
+                 max: 111
+         - source: '10.0.0.0/16'
+           is_stateless: False
+           protocol: '6'
+           tcp_options:
+              destination_port_range:
+                 min: 2048
+                 max: 2050
+         - source: '10.0.0.0/16'
+           is_stateless: False
+           protocol: '17'
+           udp_options:
+              destination_port_range:
+                 min: 111
+                 max: 111
+         - source: '10.0.0.0/16'
+           is_stateless: False
+           protocol: '17'
+           udp_options:
+              destination_port_range:
+                 min: 2048
+                 max: 2048
+         - source: '10.0.60.0/24'
+           is_stateless: False
+           protocol: '6'
+           tcp_options:
+              destination_port_range:
+                 min: 10256
+                 max: 10256
+
+       egress_security_rules:
+         - destination: '10.0.30.0/24'
+           is_stateless: True
+           protocol: 'all'
+         - destination: '10.0.40.0/24'
+           is_stateless: True
+           protocol: 'all'
+         - destination: '10.0.50.0/24'
+           is_stateless: True
+           protocol: 'all'
+         - destination: 'all-iad-services-in-oracle-services-network'
+           destination_type: SERVICE_CIDR_BLOCK
+           is_stateless: False
+           protocol: '6'
+           tcp_options:
+              destination_port_range:
+                 min: 443
+                 max: 443
+         - destination: '10.0.0.0/16'
+           is_stateless: False
+           protocol: '6'
+           tcp_options:
+              source_port_range:
+                 min: 2048
+                 max: 2050
+         - destination: '10.0.0.0/16'
+           is_stateless: False
+           protocol: '6'
+           tcp_options:
+              source_port_range:
+                 min: 111
+                 max: 111
+         - destination: '10.0.0.0/16'
+           is_stateless: False
+           protocol: '17'
+           udp_options:
+              source_port_range:
+                 min: 111
+                 max: 111
+         - destination: 'all-iad-services-in-oracle-services-network'
+           destination_type: SERVICE_CIDR_BLOCK
+           is_stateless: False
+           protocol: '6'
+           tcp_options:
+              destination_port_range:
+                 min: 6443
+                 max: 6443
+         - destination: 'all-iad-services-in-oracle-services-network'
+           destination_type: SERVICE_CIDR_BLOCK
+           is_stateless: False
+           protocol: '6'
+           tcp_options:
+              destination_port_range:
+                 min: 12250
+                 max: 12250
+         - destination: '3.0.0.0/8'
+           is_stateless: False
+           protocol: '6'
+           tcp_options:
+              destination_port_range:
+                 min: 443
+                 max: 443
+         - destination: '54.0.0.0/8'
+           is_stateless: False
+           protocol: '6'
+           tcp_options:
+              destination_port_range:
+                 min: 443
+                 max: 443
+         - destination: '34.0.0.0/8'
+           is_stateless: False
+           protocol: '6'
+           tcp_options:
+              destination_port_range:
+                 min: 443
+                 max: 443
+         - destination: '18.0.0.0/8'
+           is_stateless: False
+           protocol: '6'
+           tcp_options:
+              destination_port_range:
+                 min: 443
+                 max: 443
+         - destination: '52.0.0.0/8'
+           is_stateless: False
+           protocol: '6'
+           tcp_options:
+              destination_port_range:
+                 min: 443
+                 max: 443
+         - destination: '35.0.0.0/8'
+           is_stateless: False
+           protocol: '6'
+           tcp_options:
+              destination_port_range:
+                 min: 443
+                 max: 443
+         - destination: 'all-iad-services-in-oracle-services-network'
+           destination_type: SERVICE_CIDR_BLOCK
+           is_stateless: False
+           protocol: '6'
+           tcp_options:
+              destination_port_range:
+                 min: 80
+                 max: 80
+         - destination: '104.0.0.0/8'
+           is_stateless: False
+           protocol: '6'
+           tcp_options:
+              destination_port_range:
+                 min: 443
+                 max: 443
+         - destination: '13.0.0.0/8'
+           is_stateless: False
+           protocol: '6'
+           tcp_options:
+              destination_port_range:
+                 min: 443
+                 max: 443
+  - name: Create a security list with rules for private subnet
+    oci_security_list:
+       name: 'LBSecurityList'
+       compartment_id: '{{ tenancy_id }}'
+       vcn_id: '{{ return_object_vcn.vcns[0].id }}'
+       region: '{{ oci_region }}'
+       state: 'present'
+       ingress_security_rules:
+         - source: '0.0.0.0/0'
+           is_stateless: False
+           protocol: '6'
+           tcp_options:
+              destination_port_range:
+                 min: 80
+                 max: 80
+         - source: '0.0.0.0/0'
+           is_stateless: False
+           protocol: '6'
+           tcp_options:
+              destination_port_range:
+                 min: 443
+                 max: 443
+       egress_security_rules:
+         - destination: '10.0.30.0/24'
+           is_stateless: False
+           protocol: '6'
+           tcp_options:
+              destination_port_range:
+                 min: 30000
+                 max: 32767
+         - destination: '10.0.40.0/24'
+           is_stateless: False
+           protocol: '6'
+           tcp_options:
+              destination_port_range:
+                 min: 30000
+                 max: 32767
+         - destination: '10.0.50.0/24'
+           is_stateless: False
+           protocol: '6'
+           tcp_options:
+              destination_port_range:
+                 min: 30000
+                 max: 32767
+         - destination: '10.0.30.0/24'
+           is_stateless: False
+           protocol: '6'
+           tcp_options:
+              destination_port_range:
+                 min: 10256
+                 max: 10256
+         - destination: '10.0.40.0/24'
+           is_stateless: False
+           protocol: '6'
+           tcp_options:
+              destination_port_range:
+                 min: 10256
+                 max: 10256
+         - destination: '10.0.50.0/24'
+           is_stateless: False
+           protocol: '6'
+           tcp_options:
+              destination_port_range:
+                 min: 10256
+                 max: 10256
+
+
+
+
+
+  - name: Get information of all Security lists
+    oci_security_list_facts:
+      compartment_id: '{{ tenancy_id }}'
+      region: '{{ oci_region }}'
+      vcn_id: '{{ return_object_vcn.vcns[0].id }}'
+    register: return_object_security_list
+
+
+  - name: Set the security_list id
+    set_fact:
+      lb_security_list_id: '{{ item.id }}'
+    with_items: '{{return_object_security_list.security_lists}}'
+    when: '"LBSecurityList" in item.display_name'
+
+
+  - name: Get the route rules id
+    oci_route_table_facts:
+      compartment_id: "{{ tenancy_id }}"
+      vcn_id: '{{ return_object_vcn.vcns[0].id }}'
+    register: rt_list
+
+
+
+  - name: Get Route table id
+    set_fact:
+      rt_lb_id: '{{ item.id }}'
+    with_items: '{{ rt_list.route_tables }}'
+    when: "'RouteTableLB' in item.display_name"
+
+
+
+
+  - name: Create Load Balancer1 subnet in the VCN
+    oci_subnet:
+      cidr_block: '10.0.60.0/24'
+      compartment_id: "{{ tenancy_id }}"
+      display_name: 'LBSubnet'
+      vcn_id: '{{ return_object_vcn.vcns[0].id }}'
+      route_table_id: '{{ rt_lb_id }}'
+      security_list_ids: ['{{ lb_security_list_id }}']
+      dns_label: 'LB1'
+      region: '{{ oci_region }}'
+    when: "subnet_name_list is not defined or (subnet_name_list is defined and 'LBSubnet' not in subnet_name_list)"
+
+
+  - name: subnet list
+    oci_subnet_facts:
+      compartment_id: "{{ tenancy_id }}"
+      vcn_id: '{{ return_object_vcn.vcns[0].id }}'
+    register: subnet_total_list
+
+  - name: Get Subnet LoadBalancer ID1
+    set_fact:
+      lb1: '{{ item.id }}'
+    with_items: '{{ subnet_total_list.subnets }}'
+    when: item.display_name  == 'LBSubnet'
+
+
+  - name: Generate an OpenSSL private key size 2048
+    openssl_privatekey:
+      path: '{{log_path}}/oci_api_key.pem'
+      size: 2048
+
+
+  - name: Get the fingerprint
+    shell: "openssl rsa -pubout -outform DER -in {{log_path}}/oci_api_key.pem | openssl md5 -c | cut -d'=' -f2"
+    register: shell_output
+
+
+  - name: Setting the fingerprint
+    set_fact: 
+      fingerprint: '{{ shell_output.stdout.lstrip() }}'
+
+
+  - name: check if key file exists
+    stat:
+      path: '{{log_path}}/oci_api_key_public.pem'
+    register: key_file
+
+
+  - name: Generate an OpenSSL public key from private key
+    openssl_publickey:
+      path: '{{log_path}}/oci_api_key_public.pem'
+      privatekey_path: '{{log_path}}/oci_api_key.pem'
+    when: key_file.stat.exists == false
+
+
+
+  - name: Store the private key
+    set_fact:
+      private_key: "{{ lookup('file', '{{ log_path }}/oci_api_key.pem') }}"
+
+
+  - name: Store the public key
+    set_fact:
+      public_key: "{{ lookup('file', '{{ log_path }}/oci_api_key_public.pem') }}"
+
+
+  - name: Create Developer Cloud Instance
+    adcs:
+        state: present
+        name: '{{ devcs_name }}{{event_id}}'
+        identity: '{{ idcs_name }}'
+        user: '{{ admin_account_username }}'
+        password: '{{ admin_account_password }}'
+        ocic_region: '{{ oci_region }}'
+        wait: True
+        proxies:
+          http: 'http://ges-proxy.oracle.com:80'
+          https: 'http://ges-proxy.oracle.com:80'
+#    no_log: True
+
+
+  - name: Get Developer cloud instance details
+    adcs:
+        state: info
+        name: '{{ devcs_name }}{{event_id}}'
+        identity: '{{ idcs_name }}'
+        user: '{{ admin_account_username }}'
+        password: '{{ admin_account_password }}'
+        proxies:
+          http: 'http://ges-proxy.oracle.com:80'
+          https: 'http://ges-proxy.oracle.com:80'
+    register: adcs_json
+
+
+
+  - name: Get the Developer Cloud URL
+    debug:
+        msg: '{{ adcs_json.output.serviceAccessUrl }}'
+
+
+  - name: Set the Developer Cloud URL
+    set_fact:
+        dev_url: '{{ adcs_json.output.serviceAccessUrl }}'
+
+
+  - name: Add the Student Users to the Approle
+    idcs_grants_manager:
+        state: 'present'
+        identity: "{{idcs_name}}"
+        client_id: "{{ client_id }}"
+        client_secret: "{{ client_secret }}"
+        app_name: "DevServiceAppAUTO_{{ devcs_name}}{{event_id}}"
+        approle_list: "{{ role_list }}"
+        username: "{{ student_user }}"
+        proxies:
+          http: 'http://ges-proxy.oracle.com:80'
+          https: 'http://ges-proxy.oracle.com:80'
+    register: approle_json
+
+  - debug:
+      msg: '{{ user_id }}'
+
+
+  - name: Get the list of API keys before
+    oci_api_key_facts:
+      user_id: '{{ user_id }}'
+    register: api_key_list
+
+
+
+
+  - name: Upload a new api signing key for the specified user
+    oci_api_key:
+      user_id: '{{ user_id }}'
+      key: '{{ public_key }}'
+    when: '{{ api_key_list.api_keys }} == []'
+
+
+
+  - name: Create a OKE cluster
+    oci_cluster:
+        compartment_id: '{{ tenancy_id }}'
+        name: 'cluster{{ event_id }}'
+        vcn_id: '{{ return_object_vcn.vcns[0].id }}' 
+        kubernetes_version: "v1.17.13"
+        options:
+          service_lb_subnet_ids:
+            - '{{ lb1}}'
+          add_ons:
+            is_kubernetes_dashboard_enabled: yes
+            is_tiller_enabled: no
+
+
+
+  - name: Get the cluster details
+    oci_cluster_facts:
+        compartment_id: '{{ tenancy_id }}'
+        name: 'cluster{{ event_id }}'
+    register: cluster_list
+
+
+  - name: Get the cluster id
+    set_fact:
+      cluster_id: '{{ item.id }}'
+    with_items: '{{ cluster_list.clusters }}'
+    when: item.lifecycle_state == 'ACTIVE'
+
+  
+  - name: Get subnet names
+    set_fact:
+      subnet_name_list: '{{ subnet_name_list | default([]) + [item.display_name] }}'
+    with_items: '{{ subnet_total_list.subnets }}'
+
+  - name: Get the subnet id list
+    set_fact:
+      subnet_id_list: '{{ subnet_id_list | default([]) + [item.id]}}'
+    with_items: '{{ subnet_total_list.subnets }}'
+    when: item.display_name  not in ['LBSubnet']
+
+
+  - name: Setting the ad_domain_list
+    set_fact:
+      ad_domain_list: '{{ ad_domain_list | default([]) + [item.name]}}'
+    with_items: '{{ ad_list.availability_domains}}'
+
+
+# - debug:
+#     msg: '{{ subnet_id_list }}'
+
+
+  - name: Create the Node pool
+    oci_node_pool:
+        cluster_id: '{{ cluster_id }}'
+        compartment_id: '{{ tenancy_id }}'
+        name: 'NodePool{{event_id}}'
+        kubernetes_version: "v1.17.13"
+        node_image_name: "Oracle-Linux-7.6"
+        node_shape: "VM.Standard2.1"
+        node_config_details:
+          placement_configs:
+            - availability_domain: '{{ad_domain_list[0]}}'
+              subnet_id: '{{ subnet_id_list[2] }}'
+            - availability_domain: '{{ad_domain_list[1]}}'
+              subnet_id: '{{ subnet_id_list[1] }}'
+            - availability_domain: '{{ad_domain_list[2]}}'
+              subnet_id: '{{ subnet_id_list[0] }}'
+          size: 3
+
+  - name: set the dev comp id
+    set_fact:
+      dev_comp_id: '{{ compartment_id }}'
+
+
+  - name: Adding Selenium IP to selenium_compute
+    add_host:
+      name: "129.213.52.166"
+      groups: selenium_compute
+      ansible_ssh_private_key_file : '/home/oracle/.ssh/privateKey'
+      ansible_ssh_user: 'opc'
+
+
+

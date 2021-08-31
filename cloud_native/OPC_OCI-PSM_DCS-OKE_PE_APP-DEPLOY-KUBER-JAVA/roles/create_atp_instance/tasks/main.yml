@@ -1,0 +1,142 @@
+---
+
+  - name: Set OCI user name when oci_user is not defined
+    set_fact:
+      oci_student_user: '{{event_id}}-lab.user01'
+    when: 'oci_user == "<oci_user>"'
+
+
+  - name: Set OCI user name when oci_user is  defined
+    set_fact:
+      oci_student_user: '{{ oci_user }}'
+    when: 'oci_user != "<oci_user>"'
+
+
+  - name: Set OCI user name when oci_user is defined as N/A
+    set_fact:
+      oci_student_user: '{{ student_user }}'
+    when: 'oci_user == "N/A"'
+
+
+  - name: Set the compartment name
+    set_fact:
+        compartment_name: '{{ oci_student_user | regex_replace("lab.user", "C") }}'
+
+
+  - name: Get compartment id
+    oci_identity_compartment_facts:
+        parent_compartment_id: '{{tenancy_id}}'
+        name: "{{ compartment_name }}"
+    register: return_object
+
+
+  - name: Set the compartment id
+    set_fact:
+        compartment_id: '{{return_object.compartments[0].id}}'
+
+
+  - name: 'Get ATP instance data'
+    oci_database_autonomous_database_facts:
+      compartment_id: '{{ compartment_id }}'
+      display_name: '{{ db_name }}{{oci_student_user}}'
+    register: adw_inst
+
+
+  - name: 'Removing the ATP database if in UNAVAILABLE state'
+    oci_database_autonomous_database:
+      autonomous_database_id: '{{ adw_inst.autonomous_databases[0].id }}'
+      compartment_id: '{{ compartment_id }}'
+      region: '{{ oci_region }}'
+      state: absent
+      wait: yes
+#      wait_until: 'TERMINATED'
+    when: adw_inst.autonomous_databases != [] and adw_inst.autonomous_databases[0].lifecycle_state == 'UNAVAILABLE'
+
+
+  - name: 'Creating the ATP database'
+    oci_database_autonomous_database:
+      admin_password: '{{ db_password }}'
+      compartment_id: '{{ compartment_id }}'
+      cpu_core_count: '{{ cpu_core_count }}'
+      db_name: '{{ db_name }}'
+      db_workload: 'OLTP'
+      data_storage_size_in_tbs: '{{ db_size }}'
+      display_name: '{{ db_name }}{{oci_student_user}}'
+      license_model: '{{ license_model }}'
+      region: '{{ oci_region }}'
+      state: present
+      wait: yes
+#      wait_until: 'AVAILABLE'
+    when: (adw_inst.autonomous_databases != [] and adw_inst.autonomous_databases[0].lifecycle_state != 'AVAILABLE') or adw_inst.autonomous_databases == []
+
+
+  - name: 'Get ATP instance data'
+    oci_database_autonomous_database_facts:
+      compartment_id: '{{ compartment_id }}'
+      display_name: '{{ db_name }}{{oci_student_user}}'
+    register: adw_inst
+
+  - name: 'Download wallet for ATP Database'
+    oci_database_autonomous_database_actions:
+      autonomous_database_id: '{{ adw_inst.autonomous_databases[0].id }}'
+      password: '{{ wallet_password }}'
+      wallet_file: '{{ log_path }}/{{ db_name }}_wallet.zip'
+      action: 'generate_autonomous_database_wallet'
+
+
+  - name: 'Creating wallet folder'
+    file:
+      path: '{{ log_path }}/{{ db_name }}_wallet'
+      state: directory
+
+  - name: 'Extracting files from zipped wallet file'
+    unarchive:
+      src: '{{ log_path }}/{{ db_name }}_wallet.zip'
+      dest: '{{ log_path }}/{{ db_name }}_wallet'
+
+  - name: 'Ensure proxy info is into tnsname.ora file'
+    replace:
+      dest: '{{ log_path }}/{{ db_name }}_wallet/tnsnames.ora'
+      regexp: '(address=)(\(protocol=tcps\))'
+      replace: '\1(https_proxy={{ proxy_url }})(https_proxy_port={{ proxy_port }})\2'
+
+  - name: 'Ensure wallet location is properly set in sqlnet.ora'
+    replace:
+      dest: '{{ log_path }}/{{ db_name }}_wallet/sqlnet.ora'
+      regexp: '\?/network/admin'
+      replace: '{{ log_path }}/{{ db_name }}_wallet'
+
+  - name: 'Ensure use_https_proxy is enable in sqlnet.ora file'
+    lineinfile:
+      path: '{{ log_path }}/{{ db_name }}_wallet/sqlnet.ora'
+      line: 'SQLNET.USE_HTTPS_PROXY=on'
+
+  - name: Check if the file exists
+    stat:
+      path: "{{log_path}}/sql_run"
+    register: result
+
+  - name: 'Executing SQL query in the ATP Database'
+    oracle_sql:
+      password: '{{ db_password }}'
+      service_name: '{{ db_name | lower }}_high'
+      script: '{{ role_path }}/files/{{ item }}'
+      user: 'ADMIN'
+    with_items: '{{ provision }}'
+    when: item is search('.sql') and  result.stat.exists == false
+
+
+  - name: Add the file
+    file:
+       path: "{{log_path}}/sql_run"
+       state: touch
+
+
+  - name: 'Create event ID directory in remote server'
+    shell: ssh {{ landing_pad_user }}@{{ lading_pad_server }} 'if [ ! -d "{{ lading_pad_path }}" ]; then mkdir {{ lading_pad_path }}; fi'
+
+  - name: 'Copying wallet to the remote server'
+    shell: scp {{ log_path }}/{{ db_name }}_wallet.zip {{ landing_pad_user }}@{{ lading_pad_server }}:{{ lading_pad_path }}/
+
+  - name: 'Creating the inventory JSON file'
+    shell: ssh {{ landing_pad_user }}@{{ lading_pad_server }} 'echo  "{\"EventId\":\"{{ event_id }}\",\"Files\":[{\"filename\":\"{{ db_name }}_wallet.zip\"}]}" > {{ lading_pad_path }}/inventory.json'

@@ -1,0 +1,19 @@
+---
+
+  - name: 'Get information of all Inetenet Gateways in the VCN'
+    oci_network_internet_gateway_facts:
+      compartment_id: '{{ tenancy_id }}'
+      region: '{{ oci_region }}'
+      vcn_id: '{{ vcn_id }}'
+    register: return_object_internet_gateway
+
+
+
+  - name: 'Delete the Internet Gateways'
+    oci_network_internet_gateway:
+      ig_id: '{{ item.id }}'
+      region: '{{ oci_region }}'
+      state: absent
+    with_items: '{{ return_object_internet_gateway.internet_gateways }}'
+    loop_control:
+      label: "{{ item.display_name }}"

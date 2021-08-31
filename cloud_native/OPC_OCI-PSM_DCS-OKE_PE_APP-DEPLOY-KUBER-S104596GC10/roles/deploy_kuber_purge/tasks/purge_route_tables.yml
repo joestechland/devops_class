@@ -1,0 +1,32 @@
+---
+
+  - name: 'Getting Route table details present in the VCN'
+    oci_network_route_table_facts:
+      compartment_id: '{{ tenancy_id }}'
+      region: '{{ oci_region }}'
+      vcn_id: '{{ vcn_id }}'
+    register: return_object_route_table
+
+
+  - name: 'Remove All Reference in Route Tables'
+    oci_network_route_table:
+      rt_id: '{{ item.id }}'
+      purge_route_rules: yes
+      route_rules: '{{ route_rules | default([]) }}'
+      state: present
+      region: '{{ oci_region }}'
+    with_items: '{{ return_object_route_table.route_tables }}'
+    loop_control:
+      label: "{{ item.display_name }}"
+    when: item.route_rules != []
+
+
+  - name: 'Delete the Route Tables'
+    oci_network_route_table:
+      rt_id: '{{ item.id }}'
+      region: '{{ oci_region }}'
+      state: absent
+    with_items: '{{ return_object_route_table.route_tables }}'
+    loop_control:
+      label: "{{ item.display_name }}"
+    when: '"Default Route Table for" not in item.display_name'

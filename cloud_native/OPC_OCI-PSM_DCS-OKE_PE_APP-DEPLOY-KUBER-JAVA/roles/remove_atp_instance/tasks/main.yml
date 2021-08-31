@@ -1,0 +1,56 @@
+---
+
+  - name: Set OCI user name when oci_user is not defined
+    set_fact:
+      oci_student_user: '{{event_id}}-lab.user01'
+    when: 'oci_user == "<oci_user>"'
+
+
+  - name: Set OCI user name when oci_user is  defined
+    set_fact:
+      oci_student_user: '{{ oci_user }}'
+    when: 'oci_user != "<oci_user>"'
+
+
+  - name: Set OCI user name when oci_user is defined as N/A
+    set_fact:
+      oci_student_user: '{{ student_user }}'
+    when: 'oci_user == "N/A"'
+
+
+  - name: Set the compartment name
+    set_fact:
+        compartment_name: '{{ oci_student_user | regex_replace("lab.user", "C") }}'
+
+
+  - name: Get compartment id
+    oci_identity_compartment_facts:
+        parent_compartment_id: '{{tenancy_id}}'
+        name: "{{ compartment_name }}"
+    register: return_object
+
+
+  - name: Set the compartment id
+    set_fact:
+        compartment_id: '{{return_object.compartments[0].id}}'
+
+
+  - name: 'Getting ATP databases'
+    oci_database_autonomous_database_facts:
+      compartment_id: '{{ compartment_id }}'
+      display_name: '{{ db_name }}{{ oci_student_user }}'
+      region: '{{ oci_region }}'
+    register: adw_dict
+
+  - name: 'Removing the ATP database'
+    oci_database_autonomous_database:
+      autonomous_database_id: '{{ adw_dict.autonomous_databases[0].id }}'
+      compartment_id: '{{ compartment_id }}'
+      region: '{{ oci_region }}'
+      state: absent
+      wait: True
+#      wait_until: 'TERMINATED'
+    when: adw_dict.autonomous_databases != []
+
+
+

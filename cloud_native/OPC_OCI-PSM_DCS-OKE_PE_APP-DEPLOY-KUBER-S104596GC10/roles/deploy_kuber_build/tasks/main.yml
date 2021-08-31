@@ -1,0 +1,138 @@
+---
+
+  - name: Get full compartment list
+    oci_identity_compartment_facts:
+        parent_compartment_id: '{{tenancy_id}}'
+    register: return_object2
+
+
+  - name: Set dev compartment name when oci_user is not defined
+    set_fact:
+      dev_compartment_name: '{{event_id}}-C01'
+    when: 'oci_user == "<oci_user>"'
+
+
+  - name: Set oci user name when oci_user is not defined
+    set_fact:
+      oci_user: '{{event_id}}-lab.user01'
+    when: 'oci_user == "<oci_user>"'
+
+
+  - name: Set dev compartmentname when oci_user is  defined
+    set_fact:
+      dev_compartment_name: '{{ oci_user | regex_replace("lab.user", "C") }}'
+    when: 'oci_user != "<oci_user>"'
+
+
+  - name: Get Dev compartment ID
+    set_fact:
+      dev_comp_id: '{{ item.id }}'
+    with_items: '{{return_object2.compartments}}'
+#    when: dev_compartment_name in item.name
+    when: item.name == dev_compartment_name
+
+  - name: 'Set OCI user name'
+    set_fact:
+      oci_student_user: '{{ student_user | regex_replace("ora0", "lab.user") }}'
+
+
+  - name: Get all the group list
+    oci_identity_group_facts:
+#       group_id: '{{ item.id }}'
+        compartment_id: '{{ tenancy_id }}' 
+    register: group_list
+
+
+  - name: Get the Group id
+    set_fact:
+        group_id: '{{ item.id }}'
+    with_items: '{{ group_list.groups }}'
+    when: "item.name == 'KUBERNETES_GROUP'"
+  
+  - name: Get the User list
+    oci_identity_user_facts:
+       compartment_id: '{{ tenancy_id }}'
+    register: user_list
+
+  - name: Get the user id
+    set_fact:
+       user_id: '{{ item.id }}'
+    with_items: '{{ user_list.users }}'
+    when: item.name == oci_student_user
+
+  - name: Update group with users for the course
+    oci_identity_user_group_membership:
+        group_id: '{{ group_id }}'
+        compartment_id: '{{ tenancy_id }}'
+        user_id: '{{ user_id }}'
+        state: 'present'
+    when: '"lab.user" in oci_student_user' 
+
+
+  - name: Get the user list
+    oci_identity_user_facts:
+       compartment_id: '{{ tenancy_id }}'
+    register: user_list
+
+
+  - name: Get the user id
+    set_fact:
+        kuber_user_id: '{{ item.id }}'
+    with_items: '{{ user_list.users }}'
+    when: "item.name == '{{ event_id }}kuber'"
+
+
+  - name: Create the dummy user for kubernetes
+    oci_identity_user:
+      compartment_id: '{{ tenancy_id }}'  
+      name: '{{ event_id }}kuber'
+      description: 'Ansible  User'
+
+    #    user_groups: ['GRP{{ oci_user }}']
+    #   create_or_reset_ui_password: False
+      state: 'present'
+    when: kuber_user_id is not defined
+    register: user_json
+
+  - name: Get the user list
+    oci_identity_user_facts:
+       compartment_id: '{{ tenancy_id }}'
+    register: user_list
+
+
+  - name: Get the user id
+    set_fact:
+        user_id: '{{ item.id }}'
+    with_items: '{{ user_list.users }}'
+    when: "item.name == '{{ event_id }}kuber'"
+
+  - name: List groups
+    oci_identity_group_facts:
+      compartment_id: '{{ tenancy_id }}'
+      name: 'GRP{{ oci_user }}'
+    register: group_list
+
+  - name: Get group id
+    set_fact:
+       group_id: '{{ item.id }}'
+    with_items: '{{ group_list.groups }}'
+    when: item.name == 'GRP{{ oci_user }}'
+
+  - name: Add user to group
+    oci_identity_user_group_membership:
+       compartment_id: '{{ tenancy_id }}'
+       group_id: '{{ group_id }}'
+       user_id: '{{ user_id }}'
+       state: 'present'
+
+  - include: deploy_kuber.yml compartment_id={{ dev_comp_id }} user_id={{user_id}}
+  - include: create_readme.yml compartment_id={{return_object.compartments[0].id}}
+
+
+
+  - name: Adding Selenium IP to selenium_compute
+    add_host:
+      name: "129.213.52.166"
+      groups: selenium_compute
+      ansible_ssh_private_key_file : '/home/oracle/.ssh/privateKey'
+      ansible_ssh_user: 'opc'

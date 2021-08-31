@@ -1,0 +1,6 @@
+---
+license_model: "LICENSE_INCLUDED"
+provision:
+  - "dukelabs_atp_create_Load_db.sql"
+proxy_port: 80
+proxy_url: "ges-proxy.oracle.com"

@@ -1,0 +1,33 @@
+# /git_lab/git_lab_prod/projects/git_env/bin/ansible-playbook purge.yml -vvvv
+---
+  - name: Delete the OKE Cluster
+    hosts: 127.0.0.1
+    environment:
+      PYTHONPATH: '/git_lab/git_lab_prod/projects/ansible_modules/OCIC'
+      OCI_TENANCY: 'ocid1.tenancy.oc1..aaaaaaaaf6jvsq24uaib65js2zpdq6tqdsjn7ru65d7oui6wz6j7epivk4sa'
+      OCI_USER_KEY_FILE: '/home/oracle/.oci/oci_api_key.pem'
+      OCI_USER_FINGERPRINT: '9a:ef:fb:dc:31:9e:76:d9:66:0f:dc:c6:fc:57:98:05'
+      OCI_USER_ID: 'ocid1.user.oc1..aaaaaaaazfyqk3drcmctldmaqh63dqlwtd65vgvmv3ziue7g6otskwwkxkra'
+      HTTP_PROXY: 'http://ges-proxy.oracle.com:80'
+      HTTPS_PROXY: 'http://ges-proxy.oracle.com:80'
+    vars:
+      course_title: '<gcc_name>'
+      tenancy_id: 'ocid1.tenancy.oc1..aaaaaaaaf6jvsq24uaib65js2zpdq6tqdsjn7ru65d7oui6wz6j7epivk4sa'
+      idcs_name: 'idcs-9e3216aa4f3c441c81d1a0e44dd651c1'
+      admin_account_username: 'gitousupport'
+      admin_account_password: 'WAzJHBnfnX6*'
+      domain_id: 'ouocictrng17'
+      devcs_name: 'AutoDevCs'
+      student_user: 'ora001'
+      oci_user: 'lab.user01'
+      oci_step: 'true'
+      psm_endpoint: 'psm.us.oraclecloud.com'
+      event_id: '1607999'
+      log_path: '/tmp/1607999'
+      oci_region: 'us-ashburn-1'
+
+
+
+    roles :
+      - deploy_kuber_purge
+

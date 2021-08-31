@@ -1,0 +1,8 @@
+---
+
+  - name: Creating a README file
+    template:
+      src: README.j2
+      dest: "{{ log_path }}/README"
+
+

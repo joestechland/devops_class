@@ -1,0 +1,18 @@
+---
+
+  - name: Getting the Subnet details
+    oci_network_subnet_facts:
+      compartment_id: '{{ tenancy_id }}'
+      region: '{{ oci_region }}'
+      vcn_id: '{{ vcn_id }}'
+    register: return_object_subnet
+
+
+  - name: 'Delete the Subnets'
+    oci_network_subnet:
+      subnet_id: '{{ item.id }}'
+      region: '{{ oci_region }}'
+      state: absent
+    with_items: '{{ return_object_subnet.subnets }}'
+    loop_control:
+      label: "{{ item.display_name }}"
