@@ -1,9 +1,23 @@
-Last week:
+Last time we met:
 when, changed_when, ignore errors, templates, use roles
 Class Q: You DO have to run package_facts - but do not have to register separate var - it creates ansible_facts.packages
+Review: Covered basics of Ansible, modules, roles, syntax, variables
 
 
 Start working with OCI 
+I have created an Ansible setup playbook+roles to install OCI CLI and OCI Ansible collection on your Linux image
+- It assumes you are using Vagrant to generate the VM
+
+1. Set up OCI command line  (oci setup config -- .oci/config file)
+2. Set up OCI Ansible Collections
+3. Use an OCI Anasible collection to get data - test it's all installed and working.
+sample_ociplaybook
+
+https://github.com/oracle/oci-ansible-collection
+https://github.com/oracle/oci-ansible-collection/blob/master/InstallationGuide.md
+https://oci-ansible-collection.readthedocs.io/en/latest/collections/oracle/oci/index.html
+https://docs.oracle.com/en-us/iaas/Content/API/SDKDocs/ansiblesamples.htm
+
 Two parts: 
 Provison and purge in OCI
 Run script to configure compute image for course

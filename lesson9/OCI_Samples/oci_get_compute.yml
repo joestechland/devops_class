@@ -1,0 +1,15 @@
+---
+- name : List summary of existing compute instances.
+  collections:
+    - oracle.oci
+  connection: local
+  hosts: localhost
+  vars_files: vars.yml
+  tasks:
+    - name: List compute facts
+      oci_compute_instance_facts:
+        compartment_id: "{{ compartment_id }}"
+      register: result
+    - name: Dump result
+      debug: 
+        msg: '{{result}}'  

@@ -1,0 +1,8 @@
+---
+- name : List summary of existing buckets in OCI object storage
+  collections:
+    - oracle.oci
+  connection: local
+  hosts: localhost
+  vars_files: vars.yml
+  tasks:
