@@ -1,0 +1,244 @@
+---
+- name : List summary of existing buckets in OCI object storage
+  collections:
+    - oracle.oci
+  connection: local
+  hosts: localhost
+  vars_files: vars.yml
+  tasks:
+
+    - debug:
+        msg: '{{ compartment_id }}'
+
+
+    # - name: Checking the VCN present in the domain
+    #   oci_vcn_facts:
+    #     compartment_id: '{{ compartment_id }}'
+    #     region: '{{ oci_region }}'
+    #     display_name: '{{ VCN_display_name }}'
+    #   register: return_object_vcn
+
+    - name: List vcns
+      oci_network_vcn_facts:
+        compartment_id: '{{ compartment_id }}'
+      register: return_object_vcn
+    
+    - debug: 
+        msg: "{{ return_object_vcn }}"
+
+# - name: Get Subnet ID
+#   oci_subnet_facts:
+#     compartment_id: '{{ compartment_id }}'
+#     vcn_id: '{{ return_object_vcn.vcns[0].id }}'
+#     region: '{{ oci_region }}'
+#     display_name: '{{ Subnet_display_name }}'
+#   register: subnet_list
+
+    - name: List subnets.
+      oci_network_subnet_facts:
+        compartment_id: '{{ compartment_id }}'
+      register: return_object_subnet
+
+    - debug: 
+        msg: "{{ return_object_subnet }}"
+
+# - name: Get details of all the images of a specified compartment
+#   oci_image_facts:
+#     compartment_id: '{{ compartment_id }}'
+#     region: '{{ oci_region }}'
+#   register: image_list
+
+
+# - name: Get the image id
+#   set_fact:
+#     image_id: '{{ item.id }}'
+#   with_items: '{{ image_list.images }}'
+#   when: "'{{ image_display_name }}' in item.display_name"
+
+
+# - debug:
+#       msg: "{{ '-'.join(oci_availability_domain.split('-')[:-1]) }}-1"
+
+
+# - name: Get details of all the compute instances of a specified compartment in a AD-1
+#   oci_instance_facts:
+#     compartment_id: '{{ compartment_id }}'
+#     availability_domain: "{{ '-'.join(oci_availability_domain.split('-')[:-1])}}-1"
+#     region: '{{ oci_region }}'
+#   register: instance_list_1
+
+
+# - name: Get proxy instance IP
+#   set_fact:
+#     proxy_private_ip: '{{ item.primary_private_ip }}'
+#   with_items: '{{ instance_list_1.instances }}'
+#   when: "item.display_name == 'ges-proxy-oci'"
+
+
+
+# - name: Get proxy public IP
+#   set_fact:
+#     proxy_public_ip: '{{ item.primary_public_ip }}'
+#   with_items: '{{ instance_list_1.instances }}'
+#   when: "item.display_name == 'ges-proxy-oci'"
+
+
+# - name: Get proxy instance ID
+#   set_fact:
+#     proxy_instance_id: '{{ item.id }}'
+#   with_items: '{{ instance_list_1.instances }}'
+#   when: "item.display_name == 'ges-proxy-oci'"
+
+
+# - name: Start proxy instance
+#   oci_instance:
+#     state: running
+#     id: '{{ proxy_instance_id }}'
+#     region: '{{ oci_region }}'
+#     wait: True
+#     wait_until: 'RUNNING'
+#   when: proxy_instance_id is defined
+
+
+# - name: Get details of all the Stopped compute instances of a specified compartment in a specified Availability Domain and region
+#   oci_instance_facts:
+#     compartment_id: '{{ compartment_id }}'
+#     availability_domain: "{{ oci_availability_domain }}"
+#     lifecycle_state: 'STOPPED'
+#     region: '{{ oci_region }}'
+#   register: instance_list_stopped
+
+# - name: Get instance ID
+#   set_fact:
+#     stopped_instance_id: '{{ item.id }}'
+#   with_items: '{{ instance_list_stopped.instances }}'
+#   when: "item.display_name == '{{ instance_name }}'"
+
+# - name: Start the compute instance if present and stopped
+#   oci_instance:
+#     state: running
+#     id: '{{ stopped_instance_id }}'
+#     region: '{{ oci_region }}'
+#     wait: True
+#     wait_until: 'RUNNING'
+#   when: stopped_instance_id is defined
+
+
+
+# - name: Get details of all the compute instances of a specified compartment in a specified Availability Domain
+#   oci_instance_facts:
+#     compartment_id: '{{ compartment_id }}'
+#     availability_domain: "{{ oci_availability_domain }}"
+#     lifecycle_state: 'RUNNING'
+#     region: '{{ oci_region }}'
+#   register: instance_list
+
+
+# - name: Get instance name list
+#   set_fact:
+#     instance_name_list: '{{ instance_name_list | default([]) +  [item.display_name] }}'
+#   with_items: '{{ instance_list.instances }}'
+#   when: "item.display_name == '{{ instance_name }}'"
+
+
+# - name: Create the compute instance
+#   oci_instance:
+#       name: '{{ instance_name }}'
+#       availability_domain: "{{ oci_availability_domain }}"
+#       region: '{{ oci_region }}'
+#       compartment_id: "{{ compartment_id }}"
+#       shape: '{{ instance_shape }}'
+#       source_details:
+#         source_type: image
+#         image_id: '{{ image_id }}'
+#         boot_volume_size_in_gbs: 256
+#       metadata:
+#         ssh_authorized_keys: '{{ publicKey }}'
+#       vnic:
+#         hostname_label: "{{ instance_name }}"
+#         subnet_id: "{{ subnet_list.subnets[0].id }}"
+#       wait: True
+#       wait_until: 'RUNNING'
+#   when: instance_name_list is not defined
+
+
+# - name: Get details of all the compute instances of a specified compartment in a specified Availability Domain
+#   oci_instance_facts:
+#     compartment_id: '{{ compartment_id }}'
+#     availability_domain: "{{ oci_availability_domain }}"
+#     lifecycle_state: 'RUNNING'
+#     region: '{{ oci_region }}'
+#   register: instance_list
+
+
+# - name: Get instance id
+#   set_fact:
+#     instance_id: '{{ item.id }}'
+#   with_items: '{{ instance_list.instances }}'
+#   when: "item.display_name == '{{ instance_name }}'"
+
+
+# - name: Get instance details
+#   oci_instance_facts:
+#     id: '{{ instance_id }}'
+#     region: '{{ oci_region }}'
+#   register: instance_details
+
+
+# - name: Set the Instance public IP address
+#   set_fact:
+#       instance_ip: "{{ instance_details.instances[0].primary_public_ip }}"
+
+
+# - name: Set the Instance private IP address
+#   set_fact:
+#       instance_private_ip: "{{ instance_details.instances[0].primary_private_ip }}"
+
+
+# - name: Adding compute instance IP for remote access
+#   add_host:
+#     name: '{{ instance_ip }}'
+#     groups: compute_instance
+#     ansible_ssh_private_key_file : '/home/oracle/.ssh/privateKey'
+#     ansible_ssh_user: 'opc'
+#     ansible_become_method: sudo
+#     ansible_become_user: root
+
+
+# - name: Adding compute IP to proxy_server
+#   add_host:
+#     name: "{{ proxy_public_ip }}"
+#     groups: proxy_server
+#     ansible_ssh_private_key_file : '/home/oracle/.ssh/privateKey'
+#     ansible_ssh_user: 'opc'
+#     ansible_become_method: sudo
+
+
+
+# - name: Get instance_console_connections
+#   oci_instance_console_connection_facts:
+#     compartment_id: '{{ compartment_id }}'
+#     region: '{{ oci_region }}'
+#   register: instance_console_details
+
+
+# - name: Get Instance Console id from the specified instance
+#   set_fact:
+#     instance_console_connection_id: '{{ item.id }}'
+#   with_items: '{{ instance_console_details.instance_console_connections }}'
+#   when: item.instance_id == instance_id and item.lifecycle_state == 'ACTIVE'
+
+
+# #  - debug:
+# #     msg: '{{ instance_console_connection_id }}'
+
+
+# - name: Create instance console connection
+#   oci_instance_console_connection:
+#       state: present
+#       instance_id: '{{ instance_id }}'
+#       region: '{{ oci_region }}'
+#       public_key: "/home/oracle/.ssh/publicKey"
+#   when: instance_console_connection_id is not defined
+
+

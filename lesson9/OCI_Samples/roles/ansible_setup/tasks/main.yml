@@ -1,0 +1,45 @@
+---
+# prep image
+- name: Update apt-get repo and cache.
+  apt:
+    update_cache: true
+
+- name: Upgrade all apt packages
+  apt:
+    upgrade: dist
+    force_apt_get: true
+
+
+- name: install visual studio code.
+  snap:
+    name: code
+    classic: true
+
+- name: install ansible and linters and git.
+  apt:
+    pkg:
+      - ansible
+      - yamllint
+      - ansible-lint
+      - git
+      - curl
+      - python3
+      - python3-pip
+      - gkrellm
+      - sshfs
+
+- name: Update apt-get repo and cache.
+  apt:
+    update_cache: true
+
+- name: update python 3 alternatives
+  command: "update-alternatives --install /usr/bin/python python /usr/bin/python3 1"
+
+
+- name: remove unwanted packages.
+  apt:
+    pkg:
+      - thunderbird
+      - libreoffice*
+      - rhythmbox
+    state: absent

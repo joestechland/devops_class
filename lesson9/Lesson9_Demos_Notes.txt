@@ -38,6 +38,9 @@ How to edit test and run Ansible scripts against OCI w/o using ed-devops/vim
     2 roles: amsible setup, oci_setup:
      # setup:
     # vagrant up 
+<<<<<<< HEAD
+    # download ansible script from github.com/joestechland/devops_class
+=======
     # choose public network
     # log in and open terminal and run ip a and see the public ip address
     # ssh-copy-id -i ~/.ssh/key vagrant@public_ip_address
@@ -45,6 +48,7 @@ How to edit test and run Ansible scripts against OCI w/o using ed-devops/vim
     # test you can log in as vagrant ssh vagrant@public_ip_address
     # download ouit_devops.zip files from github
 
+>>>>>>> 477c3f8249d12d41f940ceb3f8e91c7c219fccec
     # sudo apt update
     # sudo apt install ansible
     # cd to where ansible files are
@@ -55,11 +59,15 @@ How to edit test and run Ansible scripts against OCI w/o using ed-devops/vim
     # run ansible-playbook sample_oci_playbook.yml
     # it should run but fail due to not connecting to oci image- but modules are found (unless I include config file and keys)
     # test oci clI
-    # in temrminal run oci
+    # in terminal run oci
     # should see list of commands
     # add to favorites menu: https://askubuntu.com/questions/1193496/add-app-to-favorites-from-command-line
     # Anyconnect installed for VPN access
 
+<<<<<<< HEAD
+# to be done:
+# install anyconnect, setup add user, change vagrant to only 2 cpus
+=======
 # Update vagrant to use only 2 cpus# 
 # Intended updates: copy pre-confgured Config file.
 # Install anyconnect for VPN (download and unarchive)
@@ -75,6 +83,7 @@ How to edit test and run Ansible scripts against OCI w/o using ed-devops/vim
 
 
 
+>>>>>>> 477c3f8249d12d41f940ceb3f8e91c7c219fccec
 
 Next week
 
